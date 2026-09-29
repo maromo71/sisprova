@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { MermaidRenderer } from './MermaidRenderer';
+import { formatarDataBR } from '../utils/date';
 import type { LiveExamState } from '../types';
 
 interface A4PreviewProps {
@@ -82,7 +83,7 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
               <div className="col-span-4 flex items-end mt-1">
                 <span className="font-bold mr-1.5 whitespace-nowrap">Data:</span>
                 <span className="border-b border-dotted border-black flex-1 h-4">
-                  {data_aplicacao ? new Date(data_aplicacao).toLocaleDateString('pt-BR') : ''}
+                  {formatarDataBR(data_aplicacao)}
                 </span>
               </div>
               <div className="col-span-4 flex items-end mt-1">
@@ -147,15 +148,22 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
                         components={{
                           code({ className, children, ...props }) {
                             const match = /language-(\w+)/.exec(className || '');
+                            if (match && match[1] === 'mermaid') {
+                              return (
+                                <div className="my-3 flex justify-center bg-white p-3 rounded-lg border border-slate-200 dark:border-monokai-border dark:bg-white print:border-none print:p-0 shadow-sm">
+                                  <MermaidRenderer code={String(children).trim()} />
+                                </div>
+                              );
+                            }
                             return match ? (
-                              <div className="my-2 border border-slate-400 bg-slate-50 p-2.5 rounded font-mono text-xs overflow-x-auto print:border-black print:bg-white">
-                                <code className={className} {...props}>
+                              <div className="my-2 border border-slate-300 dark:border-monokai-border bg-slate-50 dark:bg-monokai-bg p-2.5 rounded font-mono text-xs overflow-x-auto print:border-black print:bg-white print:text-black shadow-sm">
+                                <code className={`${className || ''} text-slate-800 dark:text-monokai-fg`} {...props}>
                                   {children}
                                 </code>
                               </div>
                             ) : (
                               <code
-                                className="bg-slate-100 border border-slate-300 px-1 py-0.5 rounded font-mono text-xs text-slate-900 print:border-slate-400"
+                                className="bg-slate-100 border border-slate-200 dark:bg-monokai-card dark:border-monokai-border text-slate-800 dark:text-monokai-green px-1.5 py-0.5 rounded font-mono text-xs print:border-slate-400 print:bg-slate-100 print:text-black"
                                 {...props}
                               >
                                 {children}
@@ -170,7 +178,7 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
 
                     {/* Diagrama Mermaid Se Existente */}
                     {q.diagrama_mermaid && q.diagrama_mermaid.trim() !== '' && (
-                      <div className="my-2 flex justify-center">
+                      <div className="my-3 flex justify-center bg-white p-3 rounded-lg border border-slate-200 dark:border-monokai-border dark:bg-white print:border-none print:p-0 shadow-sm">
                         <MermaidRenderer code={q.diagrama_mermaid} />
                       </div>
                     )}
@@ -220,20 +228,20 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
 
                     {/* Caixa de Código (Para Questões Tipo Código) */}
                     {q.tipo_questao === 'CODIGO' && q.linhas_resposta > 0 && (
-                      <div className="mt-3 border border-slate-400 print:border-black rounded-none p-2 bg-slate-50/50 print:bg-white">
-                        <div className="text-[10px] uppercase font-sans font-bold text-slate-500 mb-1 border-b border-slate-300 pb-0.5">
+                      <div className="mt-3 border border-slate-300 dark:border-monokai-border rounded p-2.5 bg-slate-50 dark:bg-monokai-panel/40 print:bg-white print:border-black">
+                        <div className="text-[10px] uppercase font-sans font-bold text-slate-600 dark:text-monokai-comment mb-1.5 border-b border-slate-200 dark:border-monokai-divider pb-1 print:text-black">
                           Área de Código / Implementação:
                         </div>
                         <div
                           style={{ minHeight: `${Math.max(q.linhas_resposta * 20, 80)}px` }}
-                          className="font-mono text-xs text-slate-400 flex flex-col justify-between"
+                          className="font-mono text-xs text-slate-500 dark:text-monokai-sub flex flex-col justify-between"
                         >
                           {Array.from({ length: q.linhas_resposta }).map((_, lIdx) => (
                             <div
                               key={lIdx}
-                              className="border-b border-dashed border-slate-200 print:border-slate-300 h-5 flex items-center text-[10px] text-slate-400 select-none"
+                              className="border-b border-dashed border-slate-200 dark:border-monokai-divider/40 print:border-slate-300 h-5 flex items-center text-[10px] text-slate-400 select-none"
                             >
-                              <span className="w-6 text-right pr-2 text-slate-300 font-mono">
+                              <span className="w-6 text-right pr-2 text-slate-400 dark:text-monokai-comment font-mono">
                                 {lIdx + 1}
                               </span>
                             </div>

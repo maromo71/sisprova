@@ -52,5 +52,12 @@ Os instaladores e o binário standalone serão gerados em `src-tauri/target/rele
 
 ---
 
+## 📚 Documentação Técnica e Planejamento
+
+- 📖 [**Especificação Técnica e de Requisitos do Software (ESPECIFICACAO.md)**](file:///c:/sisprova/ESPECIFICACAO.md): Documento completo com arquitetura de software, modelo relacional ERD, dicionário de dados SQLite, requisitos funcionais e não-funcionais, e matriz de comandos IPC.
+- 💡 [**Propostas de Melhorias e Roadmap (PROPOSTAS_DE_MELHORIAS.md)**](file:///c:/sisprova/PROPOSTAS_DE_MELHORIAS.md): Catálogo de melhorias priorizadas (Folhas de Resposta OMR, Provas Tipo A/B/C/D, Exportação PDF/Word nativa, Importação em lote e Backup).
+
+---
+
 ## 📄 Licença
 Distribuído sob a licença MIT.

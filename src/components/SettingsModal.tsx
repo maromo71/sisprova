@@ -111,29 +111,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-6 no-print">
-      <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl flex flex-col shadow-2xl overflow-hidden max-h-[85vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-6 no-print">
+      <div className="w-full max-w-3xl bg-white dark:bg-monokai-bg border border-slate-200 dark:border-monokai-border rounded-2xl flex flex-col shadow-2xl overflow-hidden max-h-[85vh] text-slate-800 dark:text-monokai-fg transition-colors duration-200">
         {/* Header */}
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 border-b border-slate-200 dark:border-monokai-border flex items-center justify-between bg-slate-50 dark:bg-monokai-panel">
           <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-base font-bold text-slate-100">
+            <Settings className="w-5 h-5 text-indigo-600 dark:text-monokai-cyan" />
+            <h2 className="text-base font-bold text-slate-800 dark:text-monokai-fg">
               Configurações e Cadastros Acadêmicos
             </h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded hover:bg-slate-800 text-slate-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-slate-200 dark:hover:bg-monokai-card text-slate-400 hover:text-slate-700 dark:hover:text-monokai-fg transition">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Abas */}
-        <div className="flex border-b border-slate-800 bg-slate-900/60 px-4 pt-2 gap-2 text-xs">
+        <div className="flex border-b border-slate-200 dark:border-monokai-border bg-slate-50/70 dark:bg-monokai-panel/60 px-4 pt-2 gap-2 text-xs transition-colors duration-200">
           <button
             onClick={() => setActiveTab('inst')}
             className={`px-3 py-1.5 font-medium rounded-t border-t border-x transition flex items-center gap-1.5 ${
               activeTab === 'inst'
-                ? 'bg-slate-800 text-white border-slate-700'
-                : 'text-slate-400 border-transparent hover:text-slate-200'
+                ? 'bg-white dark:bg-monokai-bg text-slate-900 dark:text-monokai-fg border-slate-300 dark:border-monokai-border shadow-sm'
+                : 'text-slate-500 dark:text-monokai-comment border-transparent hover:text-slate-800 dark:hover:text-monokai-fg'
             }`}
           >
             <Building className="w-3.5 h-3.5" /> Instituições
@@ -143,8 +143,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             onClick={() => setActiveTab('disc')}
             className={`px-3 py-1.5 font-medium rounded-t border-t border-x transition flex items-center gap-1.5 ${
               activeTab === 'disc'
-                ? 'bg-slate-800 text-white border-slate-700'
-                : 'text-slate-400 border-transparent hover:text-slate-200'
+                ? 'bg-white dark:bg-monokai-bg text-slate-900 dark:text-monokai-fg border-slate-300 dark:border-monokai-border shadow-sm'
+                : 'text-slate-500 dark:text-monokai-comment border-transparent hover:text-slate-800 dark:hover:text-monokai-fg'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" /> Disciplinas
@@ -154,8 +154,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             onClick={() => setActiveTab('db')}
             className={`px-3 py-1.5 font-medium rounded-t border-t border-x transition flex items-center gap-1.5 ${
               activeTab === 'db'
-                ? 'bg-slate-800 text-white border-slate-700'
-                : 'text-slate-400 border-transparent hover:text-slate-200'
+                ? 'bg-white dark:bg-monokai-bg text-slate-900 dark:text-monokai-fg border-slate-300 dark:border-monokai-border shadow-sm'
+                : 'text-slate-500 dark:text-monokai-comment border-transparent hover:text-slate-800 dark:hover:text-monokai-fg'
             }`}
           >
             <HardDrive className="w-3.5 h-3.5" /> Persistência SQLite
@@ -163,34 +163,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Conteúdo */}
-        <div className="flex-1 overflow-y-auto p-5 text-xs">
+        <div className="flex-1 overflow-y-auto p-5 text-xs bg-white dark:bg-monokai-bg">
           {activeTab === 'inst' && (
             <div className="space-y-4">
               <form onSubmit={handleAddInstituicao} className="flex gap-2 items-end">
                 <div className="flex-1">
-                  <label className="block text-slate-300 mb-1">Nome da Instituição</label>
+                  <label className="block text-slate-700 dark:text-monokai-sub font-medium mb-1">Nome da Instituição</label>
                   <input
                     type="text"
                     value={instNome}
                     onChange={(e) => setInstNome(e.target.value)}
                     placeholder="Ex: Universidade de Brasília"
-                    className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200"
+                    className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded px-2.5 py-1.5 text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                     required
                   />
                 </div>
                 <div className="w-28">
-                  <label className="block text-slate-300 mb-1">Sigla</label>
+                  <label className="block text-slate-700 dark:text-monokai-sub font-medium mb-1">Sigla</label>
                   <input
                     type="text"
                     value={instSigla}
                     onChange={(e) => setInstSigla(e.target.value)}
                     placeholder="UnB"
-                    className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200 uppercase"
+                    className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded px-2.5 py-1.5 text-slate-800 dark:text-monokai-fg uppercase focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded flex items-center gap-1"
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 dark:bg-monokai-green dark:hover:bg-monokai-green/90 text-white font-medium rounded flex items-center gap-1 shadow-sm transition"
                 >
                   <Plus className="w-3.5 h-3.5" /> Adicionar
                 </button>
@@ -200,17 +200,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {instituicoes.map((inst) => (
                   <div
                     key={inst.id}
-                    className="p-3 bg-slate-800/60 border border-slate-700 rounded-lg flex items-center justify-between"
+                    className="p-3 bg-slate-50 dark:bg-monokai-card/60 border border-slate-200 dark:border-monokai-border rounded-lg flex items-center justify-between shadow-sm"
                   >
                     <div>
-                      <span className="font-semibold text-slate-200">{inst.nome}</span>
+                      <span className="font-semibold text-slate-900 dark:text-monokai-fg">{inst.nome}</span>
                       {inst.sigla && (
-                        <span className="ml-2 text-indigo-400 font-bold">({inst.sigla})</span>
+                        <span className="ml-2 text-indigo-600 dark:text-monokai-cyan font-bold">({inst.sigla})</span>
                       )}
                     </div>
                     <button
                       onClick={() => handleDeleteInstituicao(inst.id)}
-                      className="text-slate-400 hover:text-rose-400 p-1"
+                      className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 transition"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -224,11 +224,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="space-y-4">
               <form onSubmit={handleAddDisciplina} className="grid grid-cols-12 gap-2 items-end">
                 <div className="col-span-5">
-                  <label className="block text-slate-300 mb-1">Instituição</label>
+                  <label className="block text-slate-700 dark:text-monokai-sub font-medium mb-1">Instituição</label>
                   <select
                     value={discInstId}
                     onChange={(e) => setDiscInstId(Number(e.target.value))}
-                    className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200"
+                    className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded px-2.5 py-1.5 text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                   >
                     {instituicoes.map((i) => (
                       <option key={i.id} value={i.id}>
@@ -238,30 +238,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </select>
                 </div>
                 <div className="col-span-4">
-                  <label className="block text-slate-300 mb-1">Nome da Disciplina</label>
+                  <label className="block text-slate-700 dark:text-monokai-sub font-medium mb-1">Nome da Disciplina</label>
                   <input
                     type="text"
                     value={discNome}
                     onChange={(e) => setDiscNome(e.target.value)}
                     placeholder="Ex: Banco de Dados I"
-                    className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200"
+                    className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded px-2.5 py-1.5 text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                     required
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-slate-300 mb-1">Código</label>
+                  <label className="block text-slate-700 dark:text-monokai-sub font-medium mb-1">Código</label>
                   <input
                     type="text"
                     value={discCodigo}
                     onChange={(e) => setDiscCodigo(e.target.value)}
                     placeholder="BD101"
-                    className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200 uppercase"
+                    className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded px-2.5 py-1.5 text-slate-800 dark:text-monokai-fg uppercase focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                   />
                 </div>
                 <div className="col-span-1">
                   <button
                     type="submit"
-                    className="w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded flex items-center justify-center"
+                    className="w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 dark:bg-monokai-green dark:hover:bg-monokai-green/90 text-white font-medium rounded flex items-center justify-center shadow-sm transition"
                     title="Adicionar"
                   >
                     <Plus className="w-4 h-4" />
@@ -273,22 +273,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {disciplinas.map((disc) => (
                   <div
                     key={disc.id}
-                    className="p-3 bg-slate-800/60 border border-slate-700 rounded-lg flex items-center justify-between"
+                    className="p-3 bg-slate-50 dark:bg-monokai-card/60 border border-slate-200 dark:border-monokai-border rounded-lg flex items-center justify-between shadow-sm"
                   >
                     <div>
-                      <span className="font-semibold text-slate-200">{disc.nome}</span>
+                      <span className="font-semibold text-slate-900 dark:text-monokai-fg">{disc.nome}</span>
                       {disc.codigo && (
-                        <span className="ml-2 text-indigo-400 font-mono text-[11px]">
+                        <span className="ml-2 text-indigo-600 dark:text-monokai-cyan font-mono text-[11px]">
                           [{disc.codigo}]
                         </span>
                       )}
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-slate-500 dark:text-monokai-comment mt-0.5">
                         Instituição: {disc.instituicao_nome || 'Geral'}
                       </p>
                     </div>
                     <button
                       onClick={() => handleDeleteDisciplina(disc.id)}
-                      className="text-slate-400 hover:text-rose-400 p-1"
+                      className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 transition"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -300,14 +300,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {activeTab === 'db' && (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl bg-slate-800/70 border border-slate-700/80 space-y-2">
-                <span className="font-bold text-slate-200 block text-xs">
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-monokai-card/70 border border-slate-200 dark:border-monokai-border space-y-2">
+                <span className="font-bold text-slate-800 dark:text-monokai-fg block text-xs">
                   Caminho do Banco de Dados SQLite (.db):
                 </span>
-                <code className="block p-2.5 rounded bg-black/60 font-mono text-emerald-400 text-xs break-all border border-slate-800">
+                <code className="block p-2.5 rounded bg-white dark:bg-black/60 font-mono text-emerald-600 dark:text-emerald-400 text-xs break-all border border-slate-200 dark:border-monokai-border">
                   {dbPath}
                 </code>
-                <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
+                <p className="text-[11px] text-slate-600 dark:text-monokai-comment leading-relaxed pt-1">
                   Em conformidade estrita com os princípios arquiteturais do aplicativo, todos os
                   dados de instituições, disciplinas, questões, fórmulas e avaliações são
                   armazenados com integridade relacional ACID e chave estrangeira ativa no SQLite.

@@ -56,8 +56,8 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
       const [qs, ds] = await Promise.all([api.getQuestoes(), api.getDisciplinas()]);
       setQuestoes(qs);
       setDisciplinas(ds);
-      if (ds.length > 0 && !disciplinaId) {
-        setDisciplinaId(ds[0].id);
+      if (ds.length > 0) {
+        setDisciplinaId((prev) => (ds.some((d) => d.id === prev) ? prev : ds[0].id));
       }
     } catch (err) {
       console.error(err);
@@ -80,6 +80,9 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
     setGrauDificuldade('MEDIO');
     setTipoQuestao('DISSERTATIVA');
     setLinhasResposta(6);
+    if (disciplinas.length > 0 && !disciplinas.some((d) => d.id === disciplinaId)) {
+      setDisciplinaId(disciplinas[0].id);
+    }
     setAlternativas([
       { texto: 'Alternativa 1', correta: true },
       { texto: 'Alternativa 2', correta: false },
@@ -91,7 +94,10 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
 
   const handleEdit = (q: QuestaoCompleta) => {
     setCurrentId(q.id);
-    setDisciplinaId(q.disciplina_id);
+    const validDisc = disciplinas.some((d) => d.id === q.disciplina_id)
+      ? q.disciplina_id
+      : (disciplinas[0]?.id ?? q.disciplina_id);
+    setDisciplinaId(validDisc);
     setTitulo(q.titulo);
     setEnunciado(q.enunciado_markdown);
     setMermaid(q.diagrama_mermaid || '');
@@ -127,10 +133,19 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
       return;
     }
 
+    const targetDiscId = disciplinas.some((d) => d.id === disciplinaId)
+      ? disciplinaId
+      : disciplinas[0]?.id;
+
+    if (!targetDiscId) {
+      alert('Cadastre ao menos uma disciplina nas Configurações antes de salvar questões.');
+      return;
+    }
+
     try {
       await api.saveQuestao({
         id: currentId,
-        disciplina_id: disciplinaId,
+        disciplina_id: targetDiscId,
         titulo,
         enunciado_markdown: enunciado,
         diagrama_mermaid: mermaid.trim() ? mermaid : null,
@@ -157,17 +172,17 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-6 no-print">
-      <div className="w-full max-w-5xl h-[88vh] bg-slate-900 border border-slate-800 rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-6 no-print">
+      <div className="w-full max-w-5xl h-[88vh] bg-white dark:bg-monokai-bg border border-slate-200 dark:border-monokai-border rounded-2xl flex flex-col shadow-2xl overflow-hidden text-slate-800 dark:text-monokai-fg transition-colors duration-200">
         {/* Cabeçalho do Modal */}
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+        <div className="p-4 border-b border-slate-200 dark:border-monokai-border flex items-center justify-between bg-slate-50 dark:bg-monokai-panel">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-indigo-950 border border-indigo-500/30 text-indigo-400">
+            <div className="p-2 rounded-lg bg-indigo-50 dark:bg-monokai-card border border-indigo-200 dark:border-monokai-border text-indigo-600 dark:text-monokai-cyan">
               <Database className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-100">Banco de Questões Relacional</h2>
-              <p className="text-xs text-slate-400">Persistência direta no SQLite local</p>
+              <h2 className="text-base font-bold text-slate-800 dark:text-monokai-fg">Banco de Questões Relacional</h2>
+              <p className="text-xs text-slate-500 dark:text-monokai-comment">Persistência direta no SQLite local</p>
             </div>
           </div>
 
@@ -175,7 +190,7 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
             {!isEditing && (
               <button
                 onClick={handleOpenNew}
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow"
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 dark:bg-monokai-green dark:hover:bg-monokai-green/90 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow"
               >
                 <Plus className="w-4 h-4" />
                 Nova Questão
@@ -183,7 +198,7 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition"
+              className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-monokai-card text-slate-400 hover:text-slate-700 dark:hover:text-monokai-fg transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -191,18 +206,18 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
         </div>
 
         {/* Corpo do Modal */}
-        <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 overflow-hidden flex bg-white dark:bg-monokai-bg">
           {isEditing ? (
             /* Formulário Completo de Edição / Criação */
             <form onSubmit={handleSave} className="flex-1 p-6 overflow-y-auto space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-bold text-slate-200">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-monokai-border">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-monokai-fg">
                   {currentId ? `Editando Questão #${currentId}` : 'Criar Nova Questão no SQLite'}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="text-xs text-slate-400 hover:text-slate-200"
+                  className="text-xs text-slate-500 dark:text-monokai-comment hover:text-slate-800 dark:hover:text-monokai-fg"
                 >
                   Cancelar
                 </button>
@@ -210,11 +225,11 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Disciplina</label>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-monokai-sub mb-1">Disciplina</label>
                   <select
                     value={disciplinaId}
                     onChange={(e) => setDisciplinaId(Number(e.target.value))}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200"
+                    className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                   >
                     {disciplinas.map((d) => (
                       <option key={d.id} value={d.id}>
@@ -225,11 +240,11 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Tipo</label>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-monokai-sub mb-1">Tipo</label>
                   <select
                     value={tipoQuestao}
                     onChange={(e) => setTipoQuestao(e.target.value as TipoQuestao)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200"
+                    className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                   >
                     <option value="DISSERTATIVA">Dissertativa</option>
                     <option value="OBJETIVA">Objetiva (Múltipla Escolha)</option>
@@ -238,11 +253,11 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Dificuldade</label>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-monokai-sub mb-1">Dificuldade</label>
                   <select
                     value={grauDificuldade}
                     onChange={(e) => setGrauDificuldade(e.target.value as GrauDificuldade)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200"
+                    className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                   >
                     <option value="FACIL">Fácil</option>
                     <option value="MEDIO">Médio</option>
@@ -252,33 +267,60 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Título</label>
+                <label className="block text-xs font-medium text-slate-700 dark:text-monokai-sub mb-1">Título</label>
                 <input
                   type="text"
                   value={titulo}
                   onChange={(e) => setTitulo(e.target.value)}
                   placeholder="Título resumido da questão"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200"
+                  className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Enunciado (Markdown + LaTeX)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-monokai-sub">
+                    Enunciado (Markdown + LaTeX)
+                  </label>
+                  <div className="flex items-center gap-1.5 text-[11px]">
+                    <span className="text-slate-500 dark:text-monokai-comment">Inserir:</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEnunciado(
+                          (prev) => prev + '\n\n$$\\int_{a}^{b} f(x) \\, dx = F(b) - F(a)$$'
+                        )
+                      }
+                      className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 dark:bg-monokai-card dark:hover:bg-monokai-cardHover dark:text-monokai-fg dark:border-monokai-border text-[10px] transition"
+                    >
+                      + Integral
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEnunciado(
+                          (prev) => prev + '\n\n```python\ndef calcular():\n    return 42\n```'
+                        )
+                      }
+                      className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 dark:bg-monokai-card dark:hover:bg-monokai-cardHover dark:text-monokai-fg dark:border-monokai-border text-[10px] transition"
+                    >
+                      + Bloco de Código (Monokai)
+                    </button>
+                  </div>
+                </div>
                 <textarea
                   rows={6}
                   value={enunciado}
                   onChange={(e) => setEnunciado(e.target.value)}
                   placeholder="Escreva em Markdown com $f(x)$ ou $$\int f(x) dx$$..."
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-xs text-slate-200 font-mono leading-relaxed"
+                  className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg p-3 text-xs text-slate-800 dark:text-monokai-fg font-mono leading-relaxed focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-slate-700 dark:text-monokai-sub mb-1">
                   Diagrama Mermaid (Opcional)
                 </label>
                 <textarea
@@ -286,18 +328,18 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
                   value={mermaid}
                   onChange={(e) => setMermaid(e.target.value)}
                   placeholder="graph TD&#10;    A --> B"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-xs text-slate-200 font-mono"
+                  className="w-full bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg p-3 text-xs text-slate-800 dark:text-monokai-fg font-mono focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                 />
                 {mermaid && (
-                  <div className="mt-2 p-3 bg-white rounded-lg">
+                  <div className="mt-2 p-3 bg-white rounded-lg border border-slate-200 dark:border-monokai-border shadow-sm">
                     <MermaidRenderer code={mermaid} />
                   </div>
                 )}
               </div>
 
               {tipoQuestao === 'OBJETIVA' ? (
-                <div className="space-y-2 border-t border-slate-800 pt-3">
-                  <label className="block text-xs font-medium text-slate-300">
+                <div className="space-y-2 border-t border-slate-200 dark:border-monokai-border pt-3">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-monokai-sub">
                     Alternativas (Marque a correta)
                   </label>
                   {alternativas.map((alt, idx) => (
@@ -313,7 +355,7 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
                         }
                         className="text-indigo-600 cursor-pointer"
                       />
-                      <span className="text-xs font-bold text-slate-400 w-6">
+                      <span className="text-xs font-bold text-slate-500 dark:text-monokai-comment w-6">
                         {String.fromCharCode(65 + idx)})
                       </span>
                       <input
@@ -325,7 +367,7 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
                             prev.map((a, i) => (i === idx ? { ...a, texto: val } : a))
                           );
                         }}
-                        className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200"
+                        className="flex-1 bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                         placeholder={`Texto da alternativa ${String.fromCharCode(65 + idx)}`}
                       />
                     </div>
@@ -333,31 +375,53 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Linhas de Resposta Pautadas (Espaçamento em folha)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="40"
-                    value={linhasResposta}
-                    onChange={(e) => setLinhasResposta(Number(e.target.value))}
-                    className="w-28 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-bold"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-medium text-slate-700 dark:text-monokai-sub">
+                      Linhas de Resposta Pautadas (Espaçamento em folha)
+                    </label>
+                    <span className="text-[10px] text-slate-500 dark:text-monokai-comment">
+                      0 = Sem pauta (para folha de respostas externa)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={linhasResposta}
+                      onChange={(e) => setLinhasResposta(Math.max(0, Number(e.target.value)))}
+                      className="w-28 bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-monokai-fg font-bold focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
+                    />
+                    <div className="flex items-center gap-1">
+                      {[0, 5, 10, 15, 20].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setLinhasResposta(num)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium border transition ${
+                            linhasResposta === num
+                              ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-monokai-cyan dark:text-monokai-bg dark:border-monokai-cyan font-bold'
+                              : 'bg-slate-100 dark:bg-monokai-panel text-slate-600 dark:text-monokai-fg border-slate-300 dark:border-monokai-border hover:bg-slate-200 dark:hover:bg-monokai-card'
+                          }`}
+                        >
+                          {num === 0 ? '0 (avulsa)' : `${num} lin`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-monokai-border">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-monokai-card dark:hover:bg-monokai-cardHover text-slate-700 dark:text-monokai-fg rounded-lg text-xs border border-slate-300 dark:border-monokai-border transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 dark:bg-monokai-green dark:hover:bg-monokai-green/90 text-white rounded-lg text-xs font-semibold shadow transition"
                 >
                   Gravar no SQLite
                 </button>
@@ -369,22 +433,22 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
               {/* Barra de Busca e Filtro */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex-1 relative">
-                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400 dark:text-monokai-comment" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Pesquisar por título ou conteúdo do enunciado..."
-                    className="w-full bg-slate-800/80 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                   />
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-slate-500" />
+                  <Filter className="w-4 h-4 text-slate-400 dark:text-monokai-comment" />
                   <select
                     value={selectedDisciplinaFilter}
                     onChange={(e) => setSelectedDisciplinaFilter(e.target.value)}
-                    className="bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none"
+                    className="bg-slate-50 dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none"
                   >
                     <option value="all">Todas as Disciplinas</option>
                     {disciplinas.map((d) => (
@@ -399,33 +463,33 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
               {/* Tabela de Questões */}
               <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
                 {questoesFiltradas.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 text-xs">
+                  <div className="text-center py-12 text-slate-400 dark:text-monokai-comment text-xs">
                     Nenhuma questão encontrada no SQLite com os filtros selecionados.
                   </div>
                 ) : (
                   questoesFiltradas.map((q) => (
                     <div
                       key={q.id}
-                      className="p-4 bg-slate-800/50 hover:bg-slate-800/90 border border-slate-800 hover:border-slate-700 rounded-xl transition flex items-start justify-between gap-4"
+                      className="p-4 bg-slate-50 hover:bg-slate-100/90 dark:bg-monokai-card/60 dark:hover:bg-monokai-card border border-slate-200 dark:border-monokai-border rounded-xl transition flex items-start justify-between gap-4 shadow-sm"
                     >
                       <div className="space-y-1.5 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-slate-100">{q.titulo}</span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-indigo-300 border border-slate-700">
+                          <span className="font-bold text-sm text-slate-900 dark:text-monokai-fg">{q.titulo}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white dark:bg-monokai-panel text-indigo-600 dark:text-monokai-cyan border border-slate-200 dark:border-monokai-border">
                             {q.tipo_questao}
                           </span>
-                          <span className="text-[10px] text-slate-400">
+                          <span className="text-[10px] text-slate-500 dark:text-monokai-sub">
                             Dificuldade: <strong>{q.grau_dificuldade}</strong>
                           </span>
                         </div>
 
-                        <p className="text-xs text-slate-400 line-clamp-2 font-mono">
+                        <p className="text-xs text-slate-600 dark:text-monokai-comment line-clamp-2 font-mono">
                           {q.enunciado_markdown}
                         </p>
 
-                        <div className="flex items-center gap-4 text-[11px] text-slate-500 pt-1">
+                        <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-monokai-sub pt-1">
                           <span>Disciplina: {q.disciplina_nome || 'Geral'}</span>
-                          {q.diagrama_mermaid && <span className="text-indigo-400 font-mono">Possui Diagrama</span>}
+                          {q.diagrama_mermaid && <span className="text-indigo-600 dark:text-monokai-cyan font-mono font-medium">Possui Diagrama</span>}
                           {q.tipo_questao === 'OBJETIVA' && (
                             <span>{q.alternativas.length} Alternativas</span>
                           )}
@@ -436,21 +500,21 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
                         {onSelectQuestion && (
                           <button
                             onClick={() => onSelectQuestion(q)}
-                            className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition"
+                            className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-monokai-green dark:hover:bg-monokai-green/90 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition shadow-sm"
                           >
                             <Plus className="w-3.5 h-3.5" /> Adicionar à Prova
                           </button>
                         )}
                         <button
                           onClick={() => handleEdit(q)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+                          className="p-1.5 rounded-lg bg-white hover:bg-slate-100 dark:bg-monokai-panel dark:hover:bg-monokai-card text-slate-600 dark:text-monokai-fg border border-slate-200 dark:border-monokai-border transition"
                           title="Editar Questão"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(q.id)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 transition"
+                          className="p-1.5 rounded-lg bg-white hover:bg-rose-50 dark:bg-monokai-panel dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200 dark:border-monokai-border transition"
                           title="Excluir do SQLite"
                         >
                           <Trash2 className="w-4 h-4" />

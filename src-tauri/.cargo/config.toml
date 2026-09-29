@@ -1,0 +1,3 @@
+[build]
+# Força compilação sequencial para eliminar 100% dos conflitos de lock do Windows Defender / Indexer
+jobs = 1

@@ -1,0 +1,205 @@
+@import 'katex/dist/katex.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #0b0f19;
+    color: #f1f5f9;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111827;
+}
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+/* Dimensões e Proporções Estritas de Folha A4 em Tela */
+.a4-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 16mm 18mm;
+  margin: 0 auto;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  color: #000000;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  position: relative;
+}
+
+/* Evitar quebra no meio da questão */
+.page-break-inside-avoid {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Ajustes no Markdown renderizado para provas acadêmicas */
+.markdown-body p {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body ul, .markdown-body ol {
+  padding-left: 1.25rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body strong {
+  font-weight: 700;
+}
+
+.markdown-body em {
+  font-style: italic;
+}
+
+/* Regras Estritas de Impressão (@media print) */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
+
+  /* Reset global de documento */
+  *, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html, body, #root {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Reseta todos os containers pais para evitar flexbox cortando o layout */
+  #root > div,
+  #root main,
+  main,
+  .overflow-hidden,
+  .overflow-auto,
+  .overflow-y-auto {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    position: static !important;
+    float: none !important;
+  }
+
+  /* Oculta toda a UI do app e painéis de edição */
+  .no-print,
+  nav,
+  aside,
+  header.app-header,
+  .editor-panel,
+  .modal-backdrop,
+  button,
+  input,
+  select,
+  textarea {
+    display: none !important;
+  }
+
+  /* Remove qualquer escala de zoom da tela (transform: scale) que causa corte nas laterais */
+  .preview-scale-wrapper,
+  .preview-scale-wrapper > div {
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* Folha A4 ocupa 100% da área útil da folha de impressão sem margens duplas ou corte */
+  .a4-sheet {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    position: static !important;
+    transform: none !important;
+  }
+
+  /* Cabeçalho da avaliação: contraste preto e branco e PROIBIÇÃO de quebra de página logo após o cabeçalho */
+  .exam-header,
+  .a4-sheet header {
+    border-color: #000000 !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Evita que o título da questão fique separado do enunciado */
+  .question-title-row {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Permite que questões iniciem na primeira página abaixo do cabeçalho sem quebra forçada */
+  .question-block {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  /* Elementos atômicos que não devem ser fatiados ao meio */
+  .alternative-item,
+  .ruled-lines-container {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .mermaid-container svg {
+    max-width: 100% !important;
+    height: auto !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

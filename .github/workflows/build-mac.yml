@@ -1,0 +1,53 @@
+name: Build macOS (.dmg)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar Toolchain Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin, aarch64-apple-darwin
+
+      - name: Instalar Dependências do Frontend
+        run: npm ci
+
+      - name: Compilar Aplicativo Tauri (.dmg / .app Universal)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'SisProva ${{ github.ref_name }}'
+          releaseBody: 'Build oficial do SisProva compilado automaticamente para macOS (Universal Binary: compatível com processadores Apple Silicon M1/M2/M3/M4 e Intel).'
+          releaseDraft: false
+          prerelease: false
+          args: --target universal-apple-darwin
+
+      - name: Salvar Artefato (.dmg) para Download
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SisProva-macOS-Universal-DMG
+          path: |
+            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app
+          if-no-files-found: warn

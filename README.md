@@ -4,6 +4,83 @@ Aplicativo desktop 100% offline para criação de avaliações acadêmicas, gest
 
 ---
 
+## 💾 Download e Instalação (Windows)
+
+Você pode baixar os instaladores diretamente da pasta [`installers/`](installers/) deste repositório ou pela aba [Releases do GitHub](https://github.com/maromo71/sisprova/releases):
+
+| Tipo de Pacote | Arquivo | Público-Alvo | Tamanho |
+| :--- | :--- | :--- | :--- |
+| **Assistente de Instalação (.exe)** | [`AvaliadorApp_1.0.0_x64-setup.exe`](installers/AvaliadorApp_1.0.0_x64-setup.exe) | **Professores e Coordenadores** (PC pessoal ou notebook institucional) | ~5.2 MB |
+| **Pacote Windows Installer (.msi)** | [`AvaliadorApp_1.0.0_x64.msi`](installers/AvaliadorApp_1.0.0_x64.msi) | **Administradores de TI** (Instalação em lote via GPO, Intune, SCCM ou scripts) | ~6.5 MB |
+
+---
+
+### 👨‍🏫 Guia de Instalação para o Professor (Uso Individual)
+
+Se você é professor ou coordenador e deseja utilizar o SisProva em seu computador ou notebook:
+
+1. **Baixar o Instalador:** Faça o download do arquivo [`AvaliadorApp_1.0.0_x64-setup.exe`](installers/AvaliadorApp_1.0.0_x64-setup.exe).
+2. **Executar:** Dê um duplo clique no arquivo baixado para iniciar o assistente.
+3. **Aviso do Windows SmartScreen (se exibido):**
+   - Como o instalador é distribuído diretamente pela instituição sem certificado comercial pago EV, o Windows Defender pode exibir a tela *"O Windows protegeu o seu computador"*.
+   - Clique no link sublinhado **"Mais informações"** e em seguida no botão **"Executar assim mesmo"**.
+4. **Concluir a Instalação:**
+   - Escolha o diretório de destino (ou mantenha o padrão sugerido) e clique em **Avançar** e **Instalar**.
+   - O assistente criará automaticamente o atalho do **SisProva / AvaliadorApp** na Área de Trabalho e no Menu Iniciar.
+5. **Pronto para Usar:**
+   - Ao abrir pela primeira vez, o aplicativo já cria e inicializa o banco de dados local SQLite de forma 100% autônoma e segura.
+   - O sistema funciona completamente offline — não necessita de internet nem login em nuvem.
+
+---
+
+### 🏛️ Guia de Instalação para o Administrador de TI da Instituição (Deploy em Massa / Laboratórios)
+
+Se você é administrador de sistemas, analista de infraestrutura ou suporte de TI responsável por equipar laboratórios, salas de aula ou máquinas corporativas:
+
+Utilize o pacote padrão Microsoft Installer [`AvaliadorApp_1.0.0_x64.msi`](installers/AvaliadorApp_1.0.0_x64.msi).
+
+#### 1. Instalação Silenciosa via Linha de Comando (CMD / PowerShell / Scripts em Lote)
+Para instalar em segundo plano em todas as máquinas sem interação do usuário:
+
+```cmd
+msiexec /i AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart
+```
+
+#### 2. Instalação com Geração de Log de Auditoria
+Recomendado para homologação e verificação de sucesso na implantação:
+
+```cmd
+msiexec /i AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart /L*V "C:\Logs\sisprova_install.log"
+```
+
+#### 3. Desinstalação Remota Silenciosa
+Para remover o aplicativo de todas as estações do parque via script:
+
+```cmd
+msiexec /x AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart
+```
+
+#### 4. Implantação via Active Directory (GPO)
+O arquivo `.msi` foi compilado respeitando a estrutura do Windows Installer da Microsoft:
+- Abra o **Group Policy Management Console (gpmc.msc)**.
+- Crie ou edite a GPO do laboratório/unidade: `Configuração do Computador -> Políticas -> Configurações de Software -> Instalação de software`.
+- Clique com o botão direito -> **Novo -> Pacote**.
+- Aponte para o caminho de rede compartilhado (UNC) do `AvaliadorApp_1.0.0_x64.msi`.
+- Selecione o método de implantação **Atribuído (Assigned)**.
+
+#### 5. Implantação via Microsoft Intune ou MECM/SCCM
+- No portal do Intune, adicione um aplicativo do tipo **Aplicativo de linha de negócios (Line-of-business app)**.
+- Carregue o arquivo `AvaliadorApp_1.0.0_x64.msi`.
+- Argumentos de linha de comando: `/quiet /qn /norestart`.
+- Contexto de instalação: **Dispositivo (Device)**.
+
+#### 6. Pré-requisitos nas Estações
+- Windows 10 (64-bit) versão 1809+ ou Windows 11.
+- Microsoft Edge WebView2 Runtime (já presente nativamente nas versões atuais do Windows 10 e Windows 11).
+- Os dados do banco SQLite de cada usuário são armazenados de forma isolada em `%APPDATA%\AvaliadorApp\data.db`.
+
+---
+
 ## 🛠️ Stack Tecnológica
 
 - **Desktop Framework:** [Tauri v2](https://v2.tauri.app/)

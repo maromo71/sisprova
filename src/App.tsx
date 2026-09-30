@@ -2,18 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { ExamBuilder } from './components/ExamBuilder';
 import { QuestionBankModal } from './components/QuestionBankModal';
 import { SettingsModal } from './components/SettingsModal';
-import { GraduationCap, Database, Settings, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { GraduationCap, Database, Settings, ShieldCheck, Sun, Moon, HardDrive } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [isQuestionBankOpen, setIsQuestionBankOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState<'inst' | 'disc' | 'db'>('inst');
   const [refreshKey, setRefreshKey] = useState<number>(0);
 
-  // Tema Dark (Monokai) / Light com persistência em localStorage
+  // Tema Dark (Slate Moderno) / Light com persistência em localStorage
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('theme');
     if (saved === 'light' || saved === 'dark') return saved;
-    return 'dark'; // Padrão Monokai Dark
+    return 'dark'; // Padrão Dark Moderno (Slate)
   });
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export const App: React.FC = () => {
     if (theme === 'dark') {
       root.classList.add('dark');
       root.classList.remove('light');
-      root.setAttribute('data-theme', 'monokai');
+      root.setAttribute('data-theme', 'dark');
     } else {
       root.classList.remove('dark');
       root.classList.add('light');
@@ -55,22 +56,16 @@ export const App: React.FC = () => {
 
         {/* Botões Globais de Ferramentas */}
         <div className="flex items-center gap-2">
-          {/* Botão de Alternar Modo DARK (Monokai) / LIGHT */}
+          {/* Botão de Alternar Modo DARK (Slate Moderno) / LIGHT */}
           <button
             onClick={toggleTheme}
             className="px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm active:scale-95 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-monokai-card dark:hover:bg-monokai-cardHover dark:text-monokai-fg dark:border-monokai-border flex items-center gap-2"
-            title={theme === 'dark' ? 'Alternar para Modo Claro' : 'Alternar para Modo Monokai Dark'}
+            title={theme === 'dark' ? 'Alternar para Modo Claro' : 'Alternar para Modo Escuro (Slate)'}
           >
             {theme === 'dark' ? (
               <>
-                <Moon className="w-3.5 h-3.5 text-monokai-cyan" />
-                <span className="font-semibold text-monokai-fg">Monokai</span>
-                <span className="flex items-center gap-1 pl-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#f92672]" title="Monokai Pink" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#a6e22e]" title="Monokai Green" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#66d9ef]" title="Monokai Cyan" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#fd971f]" title="Monokai Orange" />
-                </span>
+                <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="font-semibold text-slate-100">Modo Escuro</span>
               </>
             ) : (
               <>
@@ -89,7 +84,22 @@ export const App: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setIsSettingsOpen(true)}
+            onClick={() => {
+              setSettingsInitialTab('db');
+              setIsSettingsOpen(true);
+            }}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-monokai-card dark:hover:bg-monokai-cardHover dark:text-monokai-fg dark:border-monokai-border flex items-center gap-1.5 transition shadow-sm"
+            title="Exportar ou Restaurar Backup do Banco de Dados (.sisprova)"
+          >
+            <HardDrive className="w-3.5 h-3.5 text-emerald-500 dark:text-monokai-green" />
+            Backup (.sisprova)
+          </button>
+
+          <button
+            onClick={() => {
+              setSettingsInitialTab('inst');
+              setIsSettingsOpen(true);
+            }}
             className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-monokai-card dark:hover:bg-monokai-cardHover dark:text-monokai-fg dark:border-monokai-border flex items-center gap-1.5 transition shadow-sm"
           >
             <Settings className="w-3.5 h-3.5 text-slate-500 dark:text-monokai-comment" />
@@ -103,7 +113,10 @@ export const App: React.FC = () => {
         <ExamBuilder
           key={refreshKey}
           onOpenQuestionBank={() => setIsQuestionBankOpen(true)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenSettings={(tab = 'inst') => {
+            setSettingsInitialTab(tab);
+            setIsSettingsOpen(true);
+          }}
         />
       </main>
 
@@ -123,6 +136,7 @@ export const App: React.FC = () => {
       {/* Modal de Configurações Acadêmicas & SQLite */}
       <SettingsModal
         isOpen={isSettingsOpen}
+        initialTab={settingsInitialTab}
         onClose={() => {
           setIsSettingsOpen(false);
           setRefreshKey((k) => k + 1);

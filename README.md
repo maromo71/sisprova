@@ -47,8 +47,16 @@ Os instaladores e o binário standalone serão gerados em `src-tauri/target/rele
 2. **Editor Split-Pane:** Edição dinâmica no painel esquerdo com Live Preview A4 sincronizado a 60 FPS com `useDeferredValue` no painel direito.
 3. **Suporte Multiformato:** Enunciados com Markdown, código com syntax highlight, matemática em LaTeX `$f(x)$` e diagramas de fluxo Mermaid.
 4. **Banco de Questões Relacional:** CRUD de instituições, disciplinas e questões (dissertativas, objetivas e de código) no SQLite.
-5. **Gabarito Automático:** Alternância de visualização de gabarito para conferência do professor.
-6. **Impressão A4 Impecável:** Diagramação vetorial preservada, cabeçalho acadêmico oficial e linhas pautadas proporcionais.
+5. **Variações de Provas (Tipos A, B, C, D) [MELH-02]:** Embaralhamento determinístico de questões e alternativas via PRNG (Mulberry32) com seed reproduzível e identificação visual por versão.
+6. **Matriz de Gabaritos Consolidada do Professor [MELH-02]:** Folha de conferência com respostas cruzadas lado a lado e resumo estatístico de balanceamento para impressão A4.
+7. **Padrão de Resposta / Espelho de Correção (Versão Aluno vs. Versão Gabarito) [MELH-11]:** Cadastro de resposta esperada com suporte a Markdown/LaTeX. Alternância imediata entre Versão Aluno (com pautas limpas) e Versão Gabarito do Professor (com critérios de correção renderizados no lugar das linhas e alternativas destacadas).
+8. **Folhas de Resposta Automáticas (Gabarito OMR) [MELH-01]:** Grade de bolhas com layouts 1 por página, 2 por página (corte com 50% de economia) e 4 por página (quadrantes) com máscara de gabarito oficial.
+9. **Duplicação Rápida e Exclusão Segura de Avaliações [MELH-06]:** Ação "Nova Prova", clonagem atômica de provas existentes e exclusão com proteção integral do Banco de Questões.
+10. **Exportação Direta para PDF Nativo [MELH-03]:** Exportação em 1 clique com diálogo nativo de *Salvar Como*, fatiamento multi-página A4, metadados embutidos e fidelidade 300 DPI sem abrir diálogo de navegador.
+11. **Importação e Exportação de Questões em Lote [MELH-05]:** Exportação de acervos em JSON ou Markdown estruturados; importação em lote com pré-visualização interativa por cards e gravação atômica no SQLite.
+12. **Histórico de Alterações com Desfazer / Refazer [MELH-07]:** Controle total com botões na barra de ferramentas e atalhos de teclado `Ctrl+Z` e `Ctrl+Y` para reverter edições, inclusões ou remoções acidentais.
+13. **Backup e Restauração em Arquivo Único (.sisprova) [MELH-09]:** Exportação atômica do banco via comando `VACUUM INTO` e restauração segura com validação de schema e backup preventivo.
+14. **Impressão A4 Impecável:** Diagramação vetorial preservada, cabeçalho acadêmico oficial e linhas pautadas proporcionais via `@media print`.
 
 ---
 

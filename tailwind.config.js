@@ -9,21 +9,21 @@ export default {
     extend: {
       colors: {
         monokai: {
-          bg: '#272822',
-          panel: '#1e1f1c',
-          card: '#34352f',
-          cardHover: '#3e3d32',
-          border: '#49483e',
-          divider: '#3e3d32',
-          fg: '#f8f8f2',
-          comment: '#75715e',
-          sub: '#cfcfc2',
-          pink: '#f92672',
-          green: '#a6e22e',
-          cyan: '#66d9ef',
-          orange: '#fd971f',
-          yellow: '#e6db74',
-          purple: '#ae81ff',
+          bg: '#090d16',        // Fundo profundo neutro
+          panel: '#0f172a',     // Slate 900 (Painéis e barras)
+          card: '#1e293b',      // Slate 800 (Cards e containers)
+          cardHover: '#334155', // Slate 700 (Hover suave)
+          border: '#334155',    // Slate 700 (Bordas nítidas sem ofuscar)
+          divider: '#1e293b',   // Slate 800 (Divisores)
+          fg: '#f8fafc',        // Slate 50 (Texto nítido de alta ergonomia)
+          comment: '#94a3b8',   // Slate 400 (Textos secundários claros)
+          sub: '#cbd5e1',       // Slate 300 (Subtítulos)
+          pink: '#6366f1',      // Indigo moderno (substitui rosa neon)
+          green: '#10b981',     // Emerald 500 equilibrado
+          cyan: '#38bdf8',      // Sky 400 calmo e legível
+          orange: '#f59e0b',    // Amber 500 quente
+          yellow: '#eab308',    // Yellow 500
+          purple: '#8b5cf6',    // Violet 500 elegante
         },
       },
       screens: {

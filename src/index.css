@@ -11,9 +11,9 @@
 }
 
 html.dark {
-  --scrollbar-track: #1e1f1c;
-  --scrollbar-thumb: #49483e;
-  --scrollbar-hover: #5a594d;
+  --scrollbar-track: #0f172a;
+  --scrollbar-thumb: #334155;
+  --scrollbar-hover: #475569;
 }
 
 @layer base {
@@ -32,8 +32,8 @@ html.dark {
   }
 
   html.dark body {
-    background-color: #1e1f1c;
-    color: #f8f8f2;
+    background-color: #0f172a;
+    color: #f8fafc;
   }
 }
 
@@ -53,17 +53,17 @@ html.dark {
   background: var(--scrollbar-hover);
 }
 
-/* Bloco de Código e Destaque Monokai */
+/* Bloco de Código e Destaque Slate/Modern Dark */
 .monokai-block {
-  background-color: #272822 !important;
-  color: #f8f8f2 !important;
-  border: 1px solid #49483e !important;
+  background-color: #090d16 !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
 }
 
 .monokai-code-preview {
-  background-color: #1e1f1c;
-  color: #f8f8f2;
-  border-color: #49483e;
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-color: #334155;
 }
 
 /* Garantir que gráficos vetoriais Mermaid fiquem nítidos e com fundo limpo */

@@ -1,6 +1,7 @@
 use crate::db::DbState;
 use rusqlite::{params, Connection, Transaction};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use tauri::State;
 
 // ==========================================
@@ -66,6 +67,7 @@ pub struct QuestaoCompleta {
     pub grau_dificuldade: String,
     pub tipo_questao: String,
     pub linhas_resposta: i64,
+    pub resposta_esperada: Option<String>,
     pub criado_em: Option<String>,
     pub alternativas: Vec<Alternativa>,
 }
@@ -80,7 +82,28 @@ pub struct QuestaoInput {
     pub grau_dificuldade: String,
     pub tipo_questao: String,
     pub linhas_resposta: i64,
+    pub resposta_esperada: Option<String>,
     pub alternativas: Vec<AlternativaInput>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct QuestaoUsoItem {
+    pub avaliacao_id: i64,
+    pub avaliacao_titulo: String,
+    pub disciplina_nome: String,
+    pub data_aplicacao: Option<String>,
+    pub valor_pontuacao: f64,
+    pub dias_atras: Option<i64>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct QuestaoEstatisticasUso {
+    pub questao_id: i64,
+    pub total_usos: usize,
+    pub ultima_aplicacao: Option<String>,
+    pub dias_desde_ultima_aplicacao: Option<i64>,
+    pub usada_recentemente: bool,
+    pub historico: Vec<QuestaoUsoItem>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -173,7 +196,7 @@ fn carregar_alternativas_questao(
 fn carregar_questao_por_id(conn: &Connection, id: i64) -> Result<QuestaoCompleta, rusqlite::Error> {
     let mut stmt = conn.prepare(
         "SELECT q.id, q.disciplina_id, q.titulo, q.enunciado_markdown, q.diagrama_mermaid,
-                q.grau_dificuldade, q.tipo_questao, q.linhas_resposta, q.criado_em,
+                q.grau_dificuldade, q.tipo_questao, q.linhas_resposta, q.resposta_esperada, q.criado_em,
                 d.nome as disciplina_nome
          FROM questao q
          LEFT JOIN disciplina d ON d.id = q.disciplina_id
@@ -190,8 +213,9 @@ fn carregar_questao_por_id(conn: &Connection, id: i64) -> Result<QuestaoCompleta
             grau_dificuldade: row.get(5)?,
             tipo_questao: row.get(6)?,
             linhas_resposta: row.get(7)?,
-            criado_em: row.get(8)?,
-            disciplina_nome: row.get(9)?,
+            resposta_esperada: row.get(8)?,
+            criado_em: row.get(9)?,
+            disciplina_nome: row.get(10)?,
             alternativas: Vec::new(),
         })
     })?;
@@ -423,14 +447,15 @@ pub fn get_questoes(
             grau_dificuldade: row.get(5)?,
             tipo_questao: row.get(6)?,
             linhas_resposta: row.get(7)?,
-            criado_em: row.get(8)?,
-            disciplina_nome: row.get(9)?,
+            resposta_esperada: row.get(8)?,
+            criado_em: row.get(9)?,
+            disciplina_nome: row.get(10)?,
             alternativas: Vec::new(),
         })
     };
 
     let sql = "SELECT q.id, q.disciplina_id, q.titulo, q.enunciado_markdown, q.diagrama_mermaid,
-                      q.grau_dificuldade, q.tipo_questao, q.linhas_resposta, q.criado_em,
+                      q.grau_dificuldade, q.tipo_questao, q.linhas_resposta, q.resposta_esperada, q.criado_em,
                       d.nome as disciplina_nome
                FROM questao q
                LEFT JOIN disciplina d ON d.id = q.disciplina_id";
@@ -479,8 +504,8 @@ pub fn save_questao(
         tx.execute(
             "UPDATE questao
              SET disciplina_id = ?1, titulo = ?2, enunciado_markdown = ?3, diagrama_mermaid = ?4,
-                 grau_dificuldade = ?5, tipo_questao = ?6, linhas_resposta = ?7
-             WHERE id = ?8",
+                 grau_dificuldade = ?5, tipo_questao = ?6, linhas_resposta = ?7, resposta_esperada = ?8
+             WHERE id = ?9",
             params![
                 questao.disciplina_id,
                 questao.titulo,
@@ -489,6 +514,7 @@ pub fn save_questao(
                 questao.grau_dificuldade,
                 questao.tipo_questao,
                 questao.linhas_resposta,
+                questao.resposta_esperada,
                 id
             ],
         )
@@ -505,8 +531,8 @@ pub fn save_questao(
     } else {
         tx.execute(
             "INSERT INTO questao (disciplina_id, titulo, enunciado_markdown, diagrama_mermaid,
-                                  grau_dificuldade, tipo_questao, linhas_resposta)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                                  grau_dificuldade, tipo_questao, linhas_resposta, resposta_esperada)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![
                 questao.disciplina_id,
                 questao.titulo,
@@ -514,7 +540,8 @@ pub fn save_questao(
                 questao.diagrama_mermaid,
                 questao.grau_dificuldade,
                 questao.tipo_questao,
-                questao.linhas_resposta
+                questao.linhas_resposta,
+                questao.resposta_esperada
             ],
         )
         .map_err(|e| e.to_string())?;
@@ -728,14 +755,386 @@ pub fn save_avaliacao(
 
 #[tauri::command]
 pub fn delete_avaliacao(state: State<'_, DbState>, id: i64) -> Result<(), String> {
-    let conn = state.0.lock().map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM avaliacao WHERE id = ?1", params![id])
+    let mut conn = state.0.lock().map_err(|e| e.to_string())?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    // Exclui os vínculos de itens da avaliação. As questões no Banco de Questões permanecem 100% intactas.
+    tx.execute("DELETE FROM avaliacao_item WHERE avaliacao_id = ?1", params![id])
         .map_err(|e| e.to_string())?;
+    tx.execute("DELETE FROM avaliacao WHERE id = ?1", params![id])
+        .map_err(|e| e.to_string())?;
+
+    tx.commit().map_err(|e| e.to_string())?;
     Ok(())
+}
+
+#[tauri::command]
+pub fn clone_avaliacao(
+    state: State<'_, DbState>,
+    id: i64,
+    novo_titulo: Option<String>,
+) -> Result<AvaliacaoDetalhe, String> {
+    let mut conn = state.0.lock().map_err(|e| e.to_string())?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    // 1. Busca os metadados da avaliação de origem
+    let (disciplina_id, titulo, instrucoes, data_aplicacao, peso_total): (
+        i64,
+        String,
+        Option<String>,
+        Option<String>,
+        f64,
+    ) = tx
+        .query_row(
+            "SELECT disciplina_id, titulo, instrucoes, data_aplicacao, peso_total FROM avaliacao WHERE id = ?1",
+            params![id],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?)),
+        )
+        .map_err(|e| format!("Avaliação não encontrada para duplicação: {}", e))?;
+
+    let titulo_clonado = novo_titulo
+        .filter(|t| !t.trim().is_empty())
+        .unwrap_or_else(|| format!("Cópia de {}", titulo));
+
+    // 2. Insere o novo registro de avaliação clonada
+    tx.execute(
+        "INSERT INTO avaliacao (disciplina_id, titulo, instrucoes, data_aplicacao, peso_total)
+         VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![disciplina_id, titulo_clonado, instrucoes, data_aplicacao, peso_total],
+    )
+    .map_err(|e| format!("Erro ao criar avaliação clonada: {}", e))?;
+
+    let novo_avaliacao_id = tx.last_insert_rowid();
+
+    // 3. Clona todos os itens associados mantendo ordem e pontuações originais.
+    // As questões originais do Banco de Questões são apenas referenciadas (não duplicadas).
+    tx.execute(
+        "INSERT INTO avaliacao_item (avaliacao_id, questao_id, ordem, valor_pontuacao)
+         SELECT ?1, questao_id, ordem, valor_pontuacao FROM avaliacao_item WHERE avaliacao_id = ?2",
+        params![novo_avaliacao_id, id],
+    )
+    .map_err(|e| format!("Erro ao copiar itens da avaliação: {}", e))?;
+
+    tx.commit().map_err(|e| e.to_string())?;
+
+    // 4. Retorna a avaliação clonada completa
+    carregar_avaliacao_detalhe_interna(&conn, novo_avaliacao_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn save_questoes_lote(
+    state: State<'_, DbState>,
+    questoes: Vec<QuestaoInput>,
+) -> Result<usize, String> {
+    let mut conn = state.0.lock().map_err(|e| e.to_string())?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    // Coleta todas as disciplinas cadastradas para validação segura de chave estrangeira
+    let valid_disc_ids: Vec<i64> = {
+        let mut stmt = tx.prepare("SELECT id FROM disciplina").map_err(|e| e.to_string())?;
+        let rows = stmt.query_map([], |row| row.get(0)).map_err(|e| e.to_string())?;
+        rows.filter_map(|r| r.ok()).collect()
+    };
+
+    if valid_disc_ids.is_empty() {
+        return Err("Nenhuma disciplina cadastrada no banco de dados. Cadastre ao menos uma disciplina antes de importar questões.".to_string());
+    }
+
+    let default_disc_id = valid_disc_ids[0];
+    let mut total_inseridas = 0;
+
+    for q in &questoes {
+        let disc_id = if valid_disc_ids.contains(&q.disciplina_id) {
+            q.disciplina_id
+        } else {
+            default_disc_id
+        };
+
+        tx.execute(
+            "INSERT INTO questao (disciplina_id, titulo, enunciado_markdown, diagrama_mermaid, grau_dificuldade, tipo_questao, linhas_resposta, resposta_esperada)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![
+                disc_id,
+                q.titulo,
+                q.enunciado_markdown,
+                q.diagrama_mermaid,
+                q.grau_dificuldade,
+                q.tipo_questao,
+                q.linhas_resposta,
+                q.resposta_esperada,
+            ],
+        ).map_err(|e| format!("Erro ao inserir questão '{}': {}", q.titulo, e))?;
+
+        let questao_id = tx.last_insert_rowid();
+
+        for alt in &q.alternativas {
+            tx.execute(
+                "INSERT INTO alternativa (questao_id, texto, correta) VALUES (?1, ?2, ?3)",
+                params![questao_id, alt.texto, alt.correta],
+            ).map_err(|e| format!("Erro ao inserir alternativa: {}", e))?;
+        }
+
+        total_inseridas += 1;
+    }
+
+    tx.commit().map_err(|e| e.to_string())?;
+    Ok(total_inseridas)
+}
+
+#[tauri::command]
+pub fn export_backup_dialog(
+    app: tauri::AppHandle,
+    state: State<'_, DbState>,
+    default_name: String,
+) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    let file_path = app
+        .dialog()
+        .file()
+        .add_filter("Backup SisProva (*.sisprova)", &["sisprova", "db"])
+        .set_file_name(&default_name)
+        .blocking_save_file();
+
+    if let Some(dest) = file_path {
+        let dest_path = dest.to_string();
+        // O SQLite VACUUM INTO exige que o arquivo destino não exista
+        if std::path::Path::new(&dest_path).exists() {
+            let _ = std::fs::remove_file(&dest_path);
+        }
+        let conn = state.0.lock().map_err(|e| e.to_string())?;
+        conn.execute("VACUUM INTO ?1", params![dest_path])
+            .map_err(|e| format!("Erro ao gerar backup com VACUUM: {}", e))?;
+        return Ok(Some(dest_path));
+    }
+
+    Ok(None)
+}
+
+#[tauri::command]
+pub fn import_backup_dialog(
+    app: tauri::AppHandle,
+    state: State<'_, DbState>,
+) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    let file_path = app
+        .dialog()
+        .file()
+        .add_filter("Backup SisProva (*.sisprova, *.db)", &["sisprova", "db"])
+        .blocking_pick_file();
+
+    if let Some(src) = file_path {
+        let src_path = src.to_string();
+
+        // 1. Validação prévia de integridade no arquivo selecionado
+        {
+            let test_conn = Connection::open_with_flags(
+                &src_path,
+                rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+            )
+            .map_err(|e| format!("Arquivo de backup inválido ou ilegível: {}", e))?;
+
+            let mut check_stmt = test_conn
+                .prepare("PRAGMA quick_check")
+                .map_err(|e| e.to_string())?;
+            let status: String = check_stmt
+                .query_row([], |r| r.get(0))
+                .map_err(|e| e.to_string())?;
+            if status != "ok" {
+                return Err(format!(
+                    "O arquivo de backup falhou no teste de integridade: {}",
+                    status
+                ));
+            }
+
+            let questao_count: Result<i64, _> = test_conn.query_row(
+                "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='questao'",
+                [],
+                |r| r.get(0),
+            );
+            if questao_count.unwrap_or(0) == 0 {
+                return Err(
+                    "O arquivo selecionado não contém a estrutura do SisProva (tabela 'questao' ausente)."
+                        .to_string(),
+                );
+            }
+        }
+
+        // 2. Libera o lock do arquivo no disco trocando temporariamente a conexão para in-memory
+        let mut conn_guard = state.0.lock().map_err(|e| e.to_string())?;
+        *conn_guard = Connection::open_in_memory().map_err(|e| e.to_string())?;
+
+        let db_path = crate::db::resolve_db_path();
+
+        // 3. Cria backup do arquivo atual caso exista
+        if db_path.exists() {
+            let backup_path = db_path.with_extension("db.bak");
+            let _ = std::fs::copy(&db_path, &backup_path);
+        }
+
+        // 4. Copia o arquivo importado para a localização oficial
+        std::fs::copy(&src_path, &db_path)
+            .map_err(|e| format!("Erro ao restaurar arquivo de backup: {}", e))?;
+
+        // 5. Inicializa a nova conexão oficial e roda eventuais migrações pendentes
+        let new_conn = crate::db::initialize_database(&db_path)
+            .map_err(|e| format!("Erro ao inicializar banco restaurado: {}", e))?;
+        *conn_guard = new_conn;
+
+        return Ok(Some(src_path));
+    }
+
+    Ok(None)
+}
+
+#[tauri::command]
+pub fn save_text_file_dialog(
+    app: tauri::AppHandle,
+    default_name: String,
+    filter_name: String,
+    extensions: Vec<String>,
+) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    let exts_str: Vec<&str> = extensions.iter().map(|s| s.as_str()).collect();
+    let file_path = app
+        .dialog()
+        .file()
+        .add_filter(&filter_name, &exts_str)
+        .set_file_name(&default_name)
+        .blocking_save_file();
+
+    Ok(file_path.map(|p| p.to_string()))
+}
+
+#[tauri::command]
+pub fn pick_text_file_dialog(
+    app: tauri::AppHandle,
+    filter_name: String,
+    extensions: Vec<String>,
+) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    let exts_str: Vec<&str> = extensions.iter().map(|s| s.as_str()).collect();
+    let file_path = app
+        .dialog()
+        .file()
+        .add_filter(&filter_name, &exts_str)
+        .blocking_pick_file();
+
+    Ok(file_path.map(|p| p.to_string()))
+}
+
+#[tauri::command]
+pub fn write_text_file(file_path: String, content: String) -> Result<(), String> {
+    std::fs::write(&file_path, content.as_bytes())
+        .map_err(|e| format!("Erro ao gravar arquivo de texto '{}': {}", file_path, e))?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn read_text_file(file_path: String) -> Result<String, String> {
+    std::fs::read_to_string(&file_path)
+        .map_err(|e| format!("Erro ao ler arquivo de texto '{}': {}", file_path, e))
 }
 
 #[tauri::command]
 pub fn get_db_path() -> Result<String, String> {
     let path = crate::db::resolve_db_path();
     Ok(path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub fn save_pdf_dialog(app: tauri::AppHandle, default_name: String) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    let file_path = app
+        .dialog()
+        .file()
+        .add_filter("Documento PDF", &["pdf"])
+        .set_file_name(&default_name)
+        .blocking_save_file();
+
+    Ok(file_path.map(|p| p.to_string()))
+}
+
+#[tauri::command]
+pub fn write_binary_file(file_path: String, bytes: Vec<u8>) -> Result<(), String> {
+    std::fs::write(&file_path, &bytes)
+        .map_err(|e| format!("Erro ao gravar arquivo em '{}': {}", file_path, e))?;
+    Ok(())
+}
+
+// ==========================================
+// ESTATÍSTICAS E AUDITORIA DE USO (MELH-10)
+// ==========================================
+
+#[tauri::command]
+pub fn get_questoes_estatisticas_uso(
+    state: State<'_, DbState>,
+) -> Result<HashMap<i64, QuestaoEstatisticasUso>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+
+    let sql = "SELECT 
+                   ai.questao_id,
+                   a.id as avaliacao_id,
+                   a.titulo as avaliacao_titulo,
+                   a.data_aplicacao,
+                   ai.valor_pontuacao,
+                   d.nome as disciplina_nome,
+                   CAST((julianday('now') - julianday(COALESCE(a.data_aplicacao, a.criado_em))) AS INTEGER) as dias_atras
+               FROM avaliacao_item ai
+               JOIN avaliacao a ON a.id = ai.avaliacao_id
+               JOIN disciplina d ON d.id = a.disciplina_id
+               ORDER BY COALESCE(a.data_aplicacao, a.criado_em) DESC";
+
+    let mut stmt = conn.prepare(sql).map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |row| {
+            let questao_id: i64 = row.get(0)?;
+            let avaliacao_id: i64 = row.get(1)?;
+            let avaliacao_titulo: String = row.get(2)?;
+            let data_aplicacao: Option<String> = row.get(3)?;
+            let valor_pontuacao: f64 = row.get(4)?;
+            let disciplina_nome: String = row.get(5)?;
+            let dias_atras: Option<i64> = row.get(6)?;
+
+            Ok((
+                questao_id,
+                QuestaoUsoItem {
+                    avaliacao_id,
+                    avaliacao_titulo,
+                    disciplina_nome,
+                    data_aplicacao,
+                    valor_pontuacao,
+                    dias_atras,
+                },
+            ))
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mut mapa: HashMap<i64, QuestaoEstatisticasUso> = HashMap::new();
+
+    for item in rows {
+        let (qid, uso) = item.map_err(|e| e.to_string())?;
+        let entry = mapa.entry(qid).or_insert_with(|| QuestaoEstatisticasUso {
+            questao_id: qid,
+            total_usos: 0,
+            ultima_aplicacao: None,
+            dias_desde_ultima_aplicacao: None,
+            usada_recentemente: false,
+            historico: Vec::new(),
+        });
+
+        if entry.ultima_aplicacao.is_none() {
+            entry.ultima_aplicacao = uso.data_aplicacao.clone();
+            entry.dias_desde_ultima_aplicacao = uso.dias_atras;
+            if let Some(dias) = uso.dias_atras {
+                if dias <= 180 {
+                    entry.usada_recentemente = true;
+                }
+            }
+        }
+
+        entry.total_usos += 1;
+        entry.historico.push(uso);
+    }
+
+    Ok(mapa)
 }

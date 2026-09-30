@@ -43,6 +43,7 @@ interface EditExamQuestionModalProps {
       grau_dificuldade: GrauDificuldade;
       tipo_questao: TipoQuestao;
       linhas_resposta: number;
+      resposta_esperada?: string | null;
       alternativas: AlternativaInput[];
     },
     valor_pontuacao: number,
@@ -65,6 +66,7 @@ export const EditExamQuestionModal: React.FC<EditExamQuestionModalProps> = ({
   const [grauDificuldade, setGrauDificuldade] = useState<GrauDificuldade>('MEDIO');
   const [tipoQuestao, setTipoQuestao] = useState<TipoQuestao>('DISSERTATIVA');
   const [linhasResposta, setLinhasResposta] = useState<number>(6);
+  const [respostaEsperada, setRespostaEsperada] = useState<string>('');
   const [pontuacao, setPontuacao] = useState<number>(2.5);
   const [alternativas, setAlternativas] = useState<AlternativaInput[]>([]);
   const [previewTab, setPreviewTab] = useState<'editor' | 'preview'>('editor');
@@ -82,6 +84,7 @@ export const EditExamQuestionModal: React.FC<EditExamQuestionModalProps> = ({
       setGrauDificuldade(item.questao.grau_dificuldade);
       setTipoQuestao(item.questao.tipo_questao);
       setLinhasResposta(item.questao.linhas_resposta ?? 0);
+      setRespostaEsperada(item.questao.resposta_esperada || '');
       setPontuacao(item.valor_pontuacao);
       setAlternativas(
         item.questao.alternativas && item.questao.alternativas.length > 0
@@ -126,6 +129,7 @@ export const EditExamQuestionModal: React.FC<EditExamQuestionModalProps> = ({
           grau_dificuldade: grauDificuldade,
           tipo_questao: tipoQuestao,
           linhas_resposta: tipoQuestao === 'OBJETIVA' ? 0 : Math.max(0, linhasResposta),
+          resposta_esperada: respostaEsperada.trim() ? respostaEsperada : null,
           alternativas: tipoQuestao === 'OBJETIVA' ? alternativas : [],
         },
         pontuacao,
@@ -493,6 +497,27 @@ export const EditExamQuestionModal: React.FC<EditExamQuestionModalProps> = ({
               ))}
             </div>
           )}
+          {/* Campo de Resposta Esperada / Gabarito */}
+          <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-emerald-800 dark:text-emerald-400">
+                Resposta Esperada / Padrão de Resposta (Gabarito)
+              </label>
+              <span className="text-[10px] text-emerald-700 dark:text-emerald-500 font-medium">
+                Visível apenas na Versão Gabarito (Professor)
+              </span>
+            </div>
+            <textarea
+              rows={4}
+              value={respostaEsperada}
+              onChange={(e) => setRespostaEsperada(e.target.value)}
+              placeholder="Ex: Resolução detalhada, resposta padrão em Markdown com fórmulas $$x = \frac{-b \pm \sqrt{\Delta}}{2a}$$, código de referência ou comentários..."
+              className="w-full bg-white dark:bg-monokai-panel border border-emerald-300 dark:border-emerald-800 rounded-lg p-2.5 text-xs text-slate-800 dark:text-monokai-fg font-mono leading-relaxed focus:outline-none focus:border-emerald-500"
+            />
+            <p className="text-[11px] text-slate-500 dark:text-monokai-comment">
+              💡 Este padrão de resposta será impresso apenas na <strong>Versão Gabarito (Professor)</strong>. Na <strong>Versão do Aluno</strong>, este espaço permanece reservado com linhas pautadas ou em branco.
+            </p>
+          </div>
         </div>
 
         {/* Rodapé com Ações de Salvamento */}

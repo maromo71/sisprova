@@ -9,6 +9,7 @@ interface AnswerSheetPreviewProps {
   exam: LiveExamState;
   layoutMode?: AnswerSheetLayout;
   showAnswers?: boolean; // Se true, preenche as bolhas com a resposta correta (máscara de gabarito)
+  variacaoTipo?: 'A' | 'B' | 'C' | 'D' | null;
 }
 
 interface SingleSheetUnitProps {
@@ -16,6 +17,7 @@ interface SingleSheetUnitProps {
   showAnswers: boolean;
   isCompact?: boolean;
   unitIndex?: number;
+  variacaoTipo?: 'A' | 'B' | 'C' | 'D' | null;
 }
 
 const SingleSheetUnit: React.FC<SingleSheetUnitProps> = ({
@@ -23,6 +25,7 @@ const SingleSheetUnit: React.FC<SingleSheetUnitProps> = ({
   showAnswers,
   isCompact = false,
   unitIndex = 1,
+  variacaoTipo = null,
 }) => {
   const { instituicao, disciplina, titulo, data_aplicacao, peso_total, itens } = exam;
 
@@ -72,11 +75,18 @@ const SingleSheetUnit: React.FC<SingleSheetUnitProps> = ({
           </div>
         </div>
 
-        {/* Título e Identificação de Gabarito */}
-        <div className="py-1 text-center border-b border-black bg-slate-50 print:bg-transparent flex items-center justify-between px-1">
-          <span className="font-black uppercase tracking-wider text-[11px]">
-            FOLHA DE RESPOSTAS / GABARITO OFICIAL
-          </span>
+        {/* Título e Identificação de Gabarito e Tipo */}
+        <div className="py-1 text-center border-b border-black bg-slate-50 print:bg-transparent flex items-center justify-between px-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="font-black uppercase tracking-wider text-[11px]">
+              FOLHA DE RESPOSTAS / GABARITO OFICIAL
+            </span>
+            {variacaoTipo && (
+              <span className="bg-black text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded-sm print:border print:border-black">
+                PROVA {variacaoTipo}
+              </span>
+            )}
+          </div>
           <span className="text-[9px] font-bold text-slate-600">
             {titulo || 'AVALIAÇÃO ACADÊMICA'}
           </span>
@@ -243,7 +253,7 @@ const SingleSheetUnit: React.FC<SingleSheetUnitProps> = ({
 
       {/* Rodapé institucional com número da folha */}
       <footer className="mt-1 pt-1 border-t border-dotted border-slate-400 flex items-center justify-between text-[8px] text-slate-500">
-        <span>SisProva &bull; Documento Oficial de Avaliação Acadêmica</span>
+        <span>SisProva &bull; Documento Oficial de Avaliação Acadêmica{variacaoTipo ? ` \u2022 Tipo ${variacaoTipo}` : ''}</span>
         <span>Folha {unitIndex} &bull; Autenticação e Conferência</span>
       </footer>
     </div>
@@ -251,7 +261,7 @@ const SingleSheetUnit: React.FC<SingleSheetUnitProps> = ({
 };
 
 export const AnswerSheetPreview = forwardRef<HTMLDivElement, AnswerSheetPreviewProps>(
-  ({ exam, layoutMode = '1_per_page', showAnswers = false }, ref) => {
+  ({ exam, layoutMode = '1_per_page', showAnswers = false, variacaoTipo = null }, ref) => {
     return (
       <div className="w-full flex justify-center py-6 px-2 print:p-0 print:m-0 print:bg-white print:block overflow-y-auto print:overflow-visible">
         {/* Folha A4 Simulação Visual e Formato de Impressão */}
@@ -263,7 +273,7 @@ export const AnswerSheetPreview = forwardRef<HTMLDivElement, AnswerSheetPreviewP
           {/* MODO 1: UMA FOLHA INTEIRA POR PÁGINA A4 */}
           {layoutMode === '1_per_page' && (
             <div className="h-full flex flex-col justify-between">
-              <SingleSheetUnit exam={exam} showAnswers={showAnswers} isCompact={false} unitIndex={1} />
+              <SingleSheetUnit exam={exam} showAnswers={showAnswers} isCompact={false} unitIndex={1} variacaoTipo={variacaoTipo} />
             </div>
           )}
 
@@ -271,7 +281,7 @@ export const AnswerSheetPreview = forwardRef<HTMLDivElement, AnswerSheetPreviewP
           {layoutMode === '2_per_page' && (
             <div className="h-full flex flex-col justify-between gap-2">
               <div className="flex-1 overflow-hidden border border-slate-300 print:border-black rounded p-1">
-                <SingleSheetUnit exam={exam} showAnswers={showAnswers} isCompact={true} unitIndex={1} />
+                <SingleSheetUnit exam={exam} showAnswers={showAnswers} isCompact={true} unitIndex={1} variacaoTipo={variacaoTipo} />
               </div>
 
               {/* Linha de corte com tesoura */}
@@ -284,7 +294,7 @@ export const AnswerSheetPreview = forwardRef<HTMLDivElement, AnswerSheetPreviewP
               </div>
 
               <div className="flex-1 overflow-hidden border border-slate-300 print:border-black rounded p-1">
-                <SingleSheetUnit exam={exam} showAnswers={showAnswers} isCompact={true} unitIndex={2} />
+                <SingleSheetUnit exam={exam} showAnswers={showAnswers} isCompact={true} unitIndex={2} variacaoTipo={variacaoTipo} />
               </div>
             </div>
           )}
@@ -297,7 +307,7 @@ export const AnswerSheetPreview = forwardRef<HTMLDivElement, AnswerSheetPreviewP
                   key={num}
                   className="border border-dashed border-slate-400 print:border-black rounded p-1 flex flex-col justify-between relative overflow-hidden"
                 >
-                  <SingleSheetUnit exam={exam} showAnswers={showAnswers} isCompact={true} unitIndex={num} />
+                  <SingleSheetUnit exam={exam} showAnswers={showAnswers} isCompact={true} unitIndex={num} variacaoTipo={variacaoTipo} />
                   <div className="absolute top-1 right-1 text-[7px] font-bold text-slate-400 print:text-black">
                     #{num}
                   </div>

@@ -58,6 +58,7 @@ pub fn initialize_database(db_path: &Path) -> Result<Connection, rusqlite::Error
             grau_dificuldade TEXT CHECK(grau_dificuldade IN ('FACIL', 'MEDIO', 'DIFICIL')) DEFAULT 'MEDIO',
             tipo_questao TEXT CHECK(tipo_questao IN ('DISSERTATIVA', 'OBJETIVA', 'CODIGO')) DEFAULT 'DISSERTATIVA',
             linhas_resposta INTEGER DEFAULT 6,
+            resposta_esperada TEXT,
             criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (disciplina_id) REFERENCES disciplina(id)
         );
@@ -92,6 +93,24 @@ pub fn initialize_database(db_path: &Path) -> Result<Connection, rusqlite::Error
         );
         ",
     )?;
+
+    // Migração de compatibilidade retroativa: adiciona resposta_esperada em bancos existentes
+    {
+        let mut stmt = conn.prepare("PRAGMA table_info(questao)")?;
+        let mut has_resposta_esperada = false;
+        let col_rows = stmt.query_map([], |row| row.get::<_, String>(1))?;
+        for col in col_rows {
+            if let Ok(name) = col {
+                if name == "resposta_esperada" {
+                    has_resposta_esperada = true;
+                    break;
+                }
+            }
+        }
+        if !has_resposta_esperada {
+            let _ = conn.execute("ALTER TABLE questao ADD COLUMN resposta_esperada TEXT", []);
+        }
+    }
 
     // Inserção de dados iniciais caso a tabela de instituições esteja vazia
     let count: i64 = conn.query_row("SELECT COUNT(*) FROM instituicao", [], |row| row.get(0))?;

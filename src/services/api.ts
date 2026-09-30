@@ -56,6 +56,8 @@ let mockQuestoes: QuestaoCompleta[] = [
     grau_dificuldade: 'MEDIO',
     tipo_questao: 'DISSERTATIVA',
     linhas_resposta: 8,
+    resposta_esperada:
+      '**Resolução Esperada:**\n1. Identificamos os parâmetros $a = 2$, $b = 2$ e $f(n) = \\Theta(n)$.\n2. Calculamos o valor crítico: $n^{\\log_b a} = n^{\\log_2 2} = n^1 = n$.\n3. Como $f(n) = \\Theta(n^{\\log_b a}) = \\Theta(n)$, a recorrência recai exatamente no **Caso 2** do Teorema Mestre.\n4. Portanto, a complexidade assintótica de tempo é:\n\n$$T(n) = \\Theta(n \\log n)$$',
     criado_em: '2026-03-29 10:00:00',
     alternativas: [],
   },
@@ -70,6 +72,8 @@ let mockQuestoes: QuestaoCompleta[] = [
     grau_dificuldade: 'FACIL',
     tipo_questao: 'OBJETIVA',
     linhas_resposta: 0,
+    resposta_esperada:
+      '**Justificativa:** Em listas duplamente encadeadas com ponteiros para *head* e *tail*, a inserção no topo (push) e no final (enqueue) envolve apenas ajuste de ponteiros locais em tempo constante $O(1)$.',
     criado_em: '2026-03-29 10:15:00',
     alternativas: [
       { id: 1, questao_id: 2, texto: 'Inserção de um novo elemento no topo/final.', correta: true },
@@ -89,6 +93,8 @@ let mockQuestoes: QuestaoCompleta[] = [
     grau_dificuldade: 'DIFICIL',
     tipo_questao: 'DISSERTATIVA',
     linhas_resposta: 10,
+    resposta_esperada:
+      '**Padrão de Resolução:**\nUtilizamos a substituição $u = \\cos^2(x)$.\n- Diferencial: $du = 2\\cos(x)(-\\sin(x))\\,dx = -\\sin(2x)\\,dx \\implies \\sin(2x)\\,dx = -du$.\n- Novos limites: para $x=0 \\implies u=1$; para $x=\\pi/2 \\implies u=0$.\n- A integral torna-se:\n\n$$\\int_{1}^{0} -e^u \\, du = \\int_{0}^{1} e^u \\, du = [e^u]_0^1 = e - 1$$\n\n**Resultado:** $e - 1 \\approx 1.718$.',
     criado_em: '2026-03-29 10:30:00',
     alternativas: [],
   },
@@ -229,6 +235,7 @@ export const api = {
       grau_dificuldade: input.grau_dificuldade,
       tipo_questao: input.tipo_questao,
       linhas_resposta: input.linhas_resposta,
+      resposta_esperada: input.resposta_esperada ?? null,
       criado_em: new Date().toISOString(),
       alternativas: input.alternativas.map((a, idx) => ({
         id: a.id || idx + 1,
@@ -336,10 +343,176 @@ export const api = {
     mockAvaliacoes = mockAvaliacoes.filter((a) => a.id !== id);
   },
 
+  async cloneAvaliacao(id: number, novoTitulo?: string): Promise<AvaliacaoDetalhe> {
+    if (isTauriEnvironment()) {
+      return await invoke<AvaliacaoDetalhe>('clone_avaliacao', { id, novoTitulo: novoTitulo || null });
+    }
+    const original = mockAvaliacoes.find((a) => a.id === id);
+    if (!original) {
+      throw new Error(`Avaliação #${id} não encontrada para clonagem.`);
+    }
+    const novoId = Math.max(0, ...mockAvaliacoes.map((a) => a.id)) + 1;
+    const clonada: AvaliacaoDetalhe = {
+      ...original,
+      id: novoId,
+      titulo: novoTitulo && novoTitulo.trim() ? novoTitulo.trim() : `Cópia de ${original.titulo}`,
+      itens: original.itens.map((it) => ({ ...it })),
+    };
+    mockAvaliacoes.unshift(clonada);
+    return clonada;
+  },
+
   async getDbPath(): Promise<string> {
     if (isTauriEnvironment()) {
       return await invoke<string>('get_db_path');
     }
     return '%APPDATA%\\AvaliadorApp\\data.db (Modo Preview)';
   },
+
+  // Exportação Direta para PDF (MELH-03)
+  async savePdfDialog(defaultName: string): Promise<string | null> {
+    if (isTauriEnvironment()) {
+      return await invoke<string | null>('save_pdf_dialog', { defaultName });
+    }
+    return null;
+  },
+
+  async writeBinaryFile(filePath: string, bytes: Uint8Array | number[]): Promise<void> {
+    if (isTauriEnvironment()) {
+      const data = bytes instanceof Uint8Array ? Array.from(bytes) : bytes;
+      await invoke('write_binary_file', { filePath, bytes: data });
+      return;
+    }
+    console.log(`[Mock] Gravando ${bytes.length} bytes em ${filePath}`);
+  },
+
+  // Importação de Questões em Lote (MELH-05)
+  async saveQuestoesLote(questoes: QuestaoInput[]): Promise<number> {
+    if (isTauriEnvironment()) {
+      return await invoke<number>('save_questoes_lote', { questoes });
+    }
+    let inserted = 0;
+    for (const q of questoes) {
+      const novaId = Math.max(0, ...mockQuestoes.map((item) => item.id)) + 1;
+      const full: QuestaoCompleta = {
+        id: novaId,
+        disciplina_id: q.disciplina_id,
+        disciplina_nome: mockDisciplinas.find((d) => d.id === q.disciplina_id)?.nome || 'Geral',
+        titulo: q.titulo,
+        enunciado_markdown: q.enunciado_markdown,
+        diagrama_mermaid: q.diagrama_mermaid || null,
+        grau_dificuldade: q.grau_dificuldade,
+        tipo_questao: q.tipo_questao,
+        linhas_resposta: q.linhas_resposta,
+        resposta_esperada: q.resposta_esperada || null,
+        criado_em: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        alternativas: (q.alternativas || []).map((alt, idx) => ({
+          id: idx + 1,
+          questao_id: novaId,
+          texto: alt.texto,
+          correta: alt.correta,
+        })),
+      };
+      mockQuestoes.unshift(full);
+      inserted++;
+    }
+    return inserted;
+  },
+
+  // Backup e Restauração em Arquivo Único (MELH-09)
+  async exportBackupDialog(defaultName: string): Promise<string | null> {
+    if (isTauriEnvironment()) {
+      return await invoke<string | null>('export_backup_dialog', { defaultName });
+    }
+    console.log('[Mock] Exportando backup:', defaultName);
+    return `C:\\Users\\Mock\\Downloads\\${defaultName}`;
+  },
+
+  async importBackupDialog(): Promise<string | null> {
+    if (isTauriEnvironment()) {
+      return await invoke<string | null>('import_backup_dialog');
+    }
+    console.log('[Mock] Importando backup selecionado');
+    return 'C:\\Users\\Mock\\Downloads\\backup.sisprova';
+  },
+
+  // Utilitários de Arquivos de Texto (JSON / Markdown)
+  async saveTextFileDialog(
+    defaultName: string,
+    filterName: string,
+    extensions: string[]
+  ): Promise<string | null> {
+    if (isTauriEnvironment()) {
+      return await invoke<string | null>('save_text_file_dialog', {
+        defaultName,
+        filterName,
+        extensions,
+      });
+    }
+    return null;
+  },
+
+  async pickTextFileDialog(filterName: string, extensions: string[]): Promise<string | null> {
+    if (isTauriEnvironment()) {
+      return await invoke<string | null>('pick_text_file_dialog', {
+        filterName,
+        extensions,
+      });
+    }
+    return null;
+  },
+
+  async writeTextFile(filePath: string, content: string): Promise<void> {
+    if (isTauriEnvironment()) {
+      await invoke('write_text_file', { filePath, content });
+      return;
+    }
+    console.log(`[Mock] Gravando texto em ${filePath}`);
+  },
+
+  async readTextFile(filePath: string): Promise<string> {
+    if (isTauriEnvironment()) {
+      return await invoke<string>('read_text_file', { filePath });
+    }
+    return '';
+  },
+
+  // Estatísticas e Histórico de Utilização de Questões (MELH-10)
+  async getQuestoesEstatisticasUso(): Promise<Record<number, any>> {
+    if (isTauriEnvironment()) {
+      return await invoke<Record<number, any>>('get_questoes_estatisticas_uso');
+    }
+    // Mock para testes fora do Tauri
+    const mapa: Record<number, any> = {
+      1: {
+        questao_id: 1,
+        total_usos: 2,
+        ultima_aplicacao: '2026-06-15',
+        dias_desde_ultima_aplicacao: 107,
+        usada_recentemente: true,
+        historico: [
+          {
+            avaliacao_id: 1,
+            avaliacao_titulo: 'Prova Parcial P1 - Algoritmos',
+            disciplina_nome: 'Algoritmos e Estruturas de Dados',
+            data_aplicacao: '2026-06-15',
+            valor_pontuacao: 2.5,
+            dias_atras: 107,
+          },
+          {
+            avaliacao_id: 2,
+            avaliacao_titulo: 'Exame Final 2025/2',
+            disciplina_nome: 'Algoritmos e Estruturas de Dados',
+            data_aplicacao: '2025-12-10',
+            valor_pontuacao: 2.0,
+            dias_atras: 294,
+          },
+        ],
+      },
+    };
+    return mapa;
+  },
 };
+
+
+

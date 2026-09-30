@@ -36,7 +36,18 @@ fn main() {
             commands::get_avaliacao_detalhe,
             commands::save_avaliacao,
             commands::delete_avaliacao,
+            commands::clone_avaliacao,
             commands::get_db_path,
+            commands::save_pdf_dialog,
+            commands::write_binary_file,
+            commands::save_questoes_lote,
+            commands::export_backup_dialog,
+            commands::import_backup_dialog,
+            commands::save_text_file_dialog,
+            commands::pick_text_file_dialog,
+            commands::write_text_file,
+            commands::read_text_file,
+            commands::get_questoes_estatisticas_uso,
         ])
         .run(tauri::generate_context!())
         .expect("Erro ao inicializar o motor desktop Tauri");

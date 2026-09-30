@@ -55,6 +55,7 @@ export interface QuestaoCompleta {
   grau_dificuldade: GrauDificuldade;
   tipo_questao: TipoQuestao;
   linhas_resposta: number;
+  resposta_esperada?: string | null;
   criado_em?: string | null;
   alternativas: Alternativa[];
 }
@@ -68,6 +69,7 @@ export interface QuestaoInput {
   grau_dificuldade: GrauDificuldade;
   tipo_questao: TipoQuestao;
   linhas_resposta: number;
+  resposta_esperada?: string | null;
   alternativas: AlternativaInput[];
 }
 
@@ -138,3 +140,25 @@ export interface LiveExamState {
     questao: QuestaoCompleta;
   }>;
 }
+
+export * from './layout';
+
+export interface QuestaoUsoItem {
+  avaliacao_id: number;
+  avaliacao_titulo: string;
+  disciplina_nome: string;
+  data_aplicacao: string | null;
+  valor_pontuacao: number;
+  dias_atras: number | null;
+}
+
+export interface QuestaoEstatisticasUso {
+  questao_id: number;
+  total_usos: number;
+  ultima_aplicacao: string | null;
+  dias_desde_ultima_aplicacao: number | null;
+  usada_recentemente: boolean;
+  historico: QuestaoUsoItem[];
+}
+
+export type MapaEstatisticasUso = Record<number, QuestaoEstatisticasUso>;

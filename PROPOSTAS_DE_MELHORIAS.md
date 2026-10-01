@@ -51,6 +51,7 @@ IMPACTO │  [MELH-06] Clonagem & Exclusão Segura (✅) [MELH-05] Importação 
 | **MELH-12** | Controle Fino de Margens, Densidade e Escala de Impressão A4 | Eixo 4 | Baixa-Média | ⭐⭐⭐⭐ | ✅ **IMPLEMENTADO** |
 | **MELH-10** | Histórico de Utilização e Frequência de Questões | Eixo 5 | Baixa-Média | ⭐⭐⭐⭐ | ✅ **IMPLEMENTADO** |
 | **MELH-08** | Templates de Cabeçalho Institucional Personalizáveis | Eixo 6 | Baixa | ⭐⭐⭐⭐ | ✅ **IMPLEMENTADO** |
+| **MELH-13** | Usabilidade, Gestão Flexível de Alternativas e Fidelidade A4 | Eixos 5 e 6 | Baixa | ⭐⭐⭐⭐ | ✅ **IMPLEMENTADO** |
 
 ---
 
@@ -79,7 +80,9 @@ IMPACTO │  [MELH-06] Clonagem & Exclusão Segura (✅) [MELH-05] Importação 
     - Gerador pseudoaleatório determinístico (**Mulberry32** + Fisher-Yates) com controle de **Semente (Seed)** numérica reproduzível e botão para sortear nova semente.
   - Alternador no topo do Live Preview para visualização instantânea de cada tipo (`[Tipo A]`, `[Tipo B]`, `[Tipo C]`, `[Tipo D]`).
   - Identificação destacada no cabeçalho e rodapé do **Caderno de Prova** e da **Folha OMR**.
-  - **Folha de Gabaritos do Professor Consolidada:** visualização e impressão em A4 com tabela comparativa de respostas cruzadas, mapeamento de dissertativas e quadro de balanceamento estatístico.
+  - **Folha de Gabaritos do Professor (Adaptativa):**
+    - *Com variações ativas:* Visualização e impressão em A4 da **Folha de Gabaritos Consolidada** com tabela comparativa de respostas cruzadas (Prova A, Prova B, C, D), mapeamento de posições de dissertativas e quadro de balanceamento estatístico por versão.
+    - *Com variações inativas (versão única):* Renderização em coluna única oficial de respostas (**Gabarito Oficial do Professor**), supressão de rótulos redundantes de múltiplas versões e quadro estatístico consolidado da avaliação original.
 
 ---
 
@@ -279,7 +282,26 @@ IMPACTO │  [MELH-06] Clonagem & Exclusão Segura (✅) [MELH-05] Importação 
 
 ---
 
-## 4. Síntese dos 4 Ciclos de Entrega
+### 📌 [MELH-13] Usabilidade, Gestão Flexível de Alternativas e Fidelidade Tipográfica A4 — ✅ **CONCLUÍDO**
+- **Status:** Integrado ao Editor (`ExamBuilder.tsx`), Banco de Questões (`QuestionBankModal.tsx`), Live Preview (`A4Preview.tsx`) e folhas de estilo (`index.css`).
+- **Funcionalidades Entregues:**
+  - **Confinamento e Truncamento no Seletor Rápido de Questões do SQLite:**
+    - Correção do overflow horizontal do botão `+ Adicionar` causado pelo dimensionamento intrínseco de opções longas em tags `<select>` dentro de flexbox.
+    - Aplicação de `min-w-0 max-w-full truncate` no seletor e `shrink-0 whitespace-nowrap` no botão, garantindo alinhamento perfeito sem ultrapassar os limites do card ou da janela.
+  - **Gestão Flexível e Dinâmica de Alternativas (Banco e Criador Rápido):**
+    - Remoção do limite estático de 4 opções (A, B, C, D) no cadastro de questões objetivas do Banco de Questões (`QuestionBankModal`) e na aba de inserção rápida (`+ Nova Questão Rápida`).
+    - Inclusão do botão `+ Alternativa` com geração sequencial de letras (E, F, etc.).
+    - Botão de exclusão individual (`Trash2`) com validação de número mínimo (mínimo de 2 alternativas) e realocação automática da alternativa correta caso a opção excluída fosse a assinalada.
+  - **Acessibilidade e Alto Contraste no Modo Claro:**
+    - Correção do bloco informativo na aba `+ Nova Questão Rápida`, substituindo estilos estáticos escuros por cores semânticas com alto contraste WCAG (`bg-indigo-50 border-indigo-200 text-indigo-800` no modo claro e `dark:bg-indigo-950/40 dark:border-indigo-800/40 dark:text-indigo-300` no modo escuro).
+  - **Fidelidade Tipográfica Canônica no Preview A4 ao Vivo (Independente do Tema):**
+    - Desacoplamento do tema escuro da interface (`dark:bg-monokai-bg` e `dark:text-monokai-fg`) dentro da folha física A4 (`A4Preview.tsx`).
+    - Unificação dos componentes de código Markdown (tanto no enunciado quanto no gabarito/resposta esperada) e na área de implementação manual de questões de programação.
+    - Blocos de código no Live Preview A4 agora mantêm fundo claro e texto escuro profissional (`bg-slate-50 border-slate-300 text-slate-800`), assegurando que a pré-visualização seja sempre idêntica à impressão física em papel, tanto no Modo Claro quanto no Modo Escuro e em ambas as visualizações (Versão do Aluno e Versão Gabarito).
+
+---
+
+## 4. Síntese dos Ciclos de Entrega
 
 | Ciclo | Eixo Principal | Status | Entregas Chave |
 |---|---|:---:|---|

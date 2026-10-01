@@ -88,6 +88,15 @@ html.dark {
   position: relative;
 }
 
+/* No preview e impressão A4, blocos e tags de código sempre preservam fundo claro legível */
+.a4-sheet pre,
+.a4-sheet code {
+  color: #1e293b !important;
+}
+.a4-sheet pre {
+  background-color: #f8fafc !important;
+}
+
 /* Evitar quebra no meio da questão */
 .page-break-inside-avoid {
   break-inside: avoid;

@@ -148,19 +148,20 @@ export function calcularMatrizGabarito(
   itens: MatrizGabaritoItem[];
   distribuicaoGabarito: Record<TipoVariacao, Record<string, number>>;
 } {
-  const tipos: TipoVariacao[] =
-    config.quantidade === 2
-      ? ['A', 'B']
-      : config.quantidade === 3
-      ? ['A', 'B', 'C']
-      : ['A', 'B', 'C', 'D'];
+  const tipos: TipoVariacao[] = !config.ativo
+    ? ['A']
+    : config.quantidade === 2
+    ? ['A', 'B']
+    : config.quantidade === 3
+    ? ['A', 'B', 'C']
+    : ['A', 'B', 'C', 'D'];
 
-  // Gera todas as variações
+  // Gera todas as variações necessárias
   const variacoes: Record<TipoVariacao, LiveExamState> = {
-    A: gerarExamVariacao(baseExam, 'A', config),
-    B: gerarExamVariacao(baseExam, 'B', config),
-    C: gerarExamVariacao(baseExam, 'C', config),
-    D: gerarExamVariacao(baseExam, 'D', config),
+    A: config.ativo ? gerarExamVariacao(baseExam, 'A', config) : baseExam,
+    B: config.ativo ? gerarExamVariacao(baseExam, 'B', config) : baseExam,
+    C: config.ativo ? gerarExamVariacao(baseExam, 'C', config) : baseExam,
+    D: config.ativo ? gerarExamVariacao(baseExam, 'D', config) : baseExam,
   };
 
   const matrizItens: MatrizGabaritoItem[] = [];

@@ -1,7 +1,7 @@
 # SisProva - Especificação Técnica e de Requisitos do Software
 
-**Versão:** 1.5.0 (Ciclos 1, 2, 3 e 4 Concluídos — 100% Finalizado)  
-**Data da Especificação:** Setembro de 2026  
+**Versão:** 1.6.0 (Ciclos 1 a 4 Concluídos + Refinamento de Usabilidade, Acessibilidade e Alternativas Dinâmicas)  
+**Data da Especificação:** Outubro de 2026  
 **Status:** Em Produção / Estável  
 **Arquitetura:** Desktop Offline-First (Tauri v2 + Rust + React 19 + SQLite)  
 
@@ -233,7 +233,7 @@ erDiagram
 - **RF04 - CRUD de Questões:** Criação, edição, exclusão e busca de questões com filtros por disciplina, texto de busca e nível de dificuldade.
 - **RF05 - Tipologias de Questão:**
   - *Dissertativa:* Com quantidade personalizável de pautas ou zero linhas.
-  - *Objetiva (Múltipla Escolha):* Com alternativas dinâmicas e marcação da resposta correta para gabarito.
+  - *Objetiva (Múltipla Escolha):* Com alternativas dinâmicas expansíveis via botão `+ Alternativa` (A, B, C, D, E, F...), remoção individual com proteção de mínimo de 2 alternativas, e marcação radio da alternativa correta para gabarito. Suportado no Banco de Questões (`QuestionBankModal`), na Edição da Prova (`EditExamQuestionModal`) e na Criação Rápida (`ExamBuilder`).
   - *Código:* Caixa pautada com numeração de linhas estilizada para disciplinas de computação e algoritmos.
 - **RF06 - Fórmulas Matemáticas KaTeX:** Suporte a equações inline `$f(x)$` e em bloco `$$\int_{a}^{b} f(x) dx$$` com renderização tipográfica offline.
 - **RF07 - Diagramas Vetoriais Mermaid:** Suporte a fluxogramas (`graph TD`), diagramas de sequência, mapas mentais e diagramas de classe.
@@ -243,8 +243,8 @@ erDiagram
 ### 4.3 Módulo de Montagem e Edição de Provas (ExamBuilder)
 - **RF10 - Metadados da Avaliação:** Configuração de título, instituição, disciplina, data, peso total e instruções gerais.
 - **RF11 - Inclusão de Questões na Prova:**
-  - Adição a partir do banco de questões relacional.
-  - Adição rápida inline (criação instantânea e inclusão no exame com padrão de resposta).
+  - Adição a partir do banco de questões relacional através de seletor rápido com confinamento flexbox (`min-w-0`, `truncate`), prevenindo que títulos longos desloquem o botão `+ Adicionar` para fora da tela.
+  - Adição rápida inline (criação instantânea com padrão de resposta, suporte a alternativas dinâmicas e aviso informativo em alto contraste adaptativo WCAG).
 - **RF12 - Edição de Questões Já Inseridas na Avaliação:**
   - O docente pode editar qualquer questão já adicionada ao exame (mesmo as vindas do Banco de Questões).
   - Pode optar por **Salvar Alterações** (atualiza no SQLite e na prova) ou **Salvar como Nova Cópia** (duplica no SQLite com novo ID, preservando a questão original no acervo).
@@ -261,7 +261,9 @@ erDiagram
   - **Ação "Excluir Avaliação":** Remove com segurança a avaliação e seus vínculos em `avaliacao_item`, exibindo aviso formal de que nenhuma questão do acervo será apagada.
 
 ### 4.4 Módulo de Visualização, Impressão e Modos de Avaliação
-- **RF16 - Live Preview Split-Pane em Tempo Real:** Renderização visual contínua com debouncing e zoom proporcional (60% a 130%).
+- **RF16 - Live Preview Split-Pane em Tempo Real e Fidelidade do Papel A4:**
+  - Renderização visual contínua com debouncing e zoom proporcional (60% a 130%).
+  - **Fidelidade da Folha A4 em Tela:** A área útil da folha A4 emula um documento impresso canônico; blocos de código (`pre`/`code`) e caixas de implementação preservam fundo claro legível (`bg-slate-50 border-slate-300 text-slate-800`), desacoplados do tema escuro da interface, em ambas as visualizações (Versão do Aluno e Versão Gabarito).
 - **RF17 - Dualidade "Versão Aluno" vs. "Versão Gabarito (Professor)":**
   - **Seletor de Modo Segmentado:** Alternância imediata na barra de ferramentas entre `[ 🎓 Versão Aluno ]` e `[ 👨‍🏫 Versão Gabarito ]`.
   - **Versão Aluno:** Oculta rigorosamente todas as respostas esperadas; exibe pautas ou caixas de código vazias para escrita manual; mantém alternativas desmarcadas.
@@ -274,11 +276,13 @@ erDiagram
   - Sincronização automática das questões objetivas e dissertativas em folha de leitura óptica padronizada.
   - Layouts de economia: 1 por folha, 2 por folha (linha de corte central - 50% de economia) e 4 por folha (quadrantes).
   - Modo Máscara de Gabarito com bolhas preenchidas para correção rápida perfurada.
-- **RF19 - Variações de Provas (Tipos A, B, C, D) e Gabarito Consolidado (MELH-02):**
+- **RF19 - Variações de Provas (Tipos A, B, C, D) e Gabarito Adaptativo (MELH-02):**
   - Geração paramétrica de 2 a 4 versões da prova via PRNG Mulberry32 determinístico baseado em semente (*seed*).
   - Embaralhamento em dois níveis: ordem das questões e ordem das alternativas internas.
   - Identificação clara do tipo no cabeçalho e rodapé do caderno de prova e folha OMR.
-  - Visualização e impressão da Folha de Gabaritos Consolidada com matriz de respostas lado a lado e distribuição estatística.
+  - **Folha de Gabarito Adaptativa:**
+    - *Com variações ativas:* Exibe a **Folha de Gabaritos Consolidada** com matriz comparativa lado a lado (Prova A, Prova B, C, D), posições relativas e distribuição estatística de alternativas por versão.
+    - *Com variações inativas (versão única):* Exibe o **Gabarito Oficial do Professor** em coluna única oficial, suprimindo colunas duplicadas de tipos inexistentes, desativando rótulos de shuffle e exibindo a distribuição estatística exclusiva da avaliação canônica.
 - **RF20 - Exportação Direta para PDF Nativo sem Diálogo do Navegador (MELH-03):**
   - Conversão de alta fidelidade (300 DPI equivalente) via `html2canvas` 2x + `jsPDF` em escala A4 exata (210 mm x 297 mm).
   - Fatiamento multi-páginas inteligente sem cortes de equações ou diagramas.
@@ -407,3 +411,5 @@ erDiagram
 8. **Controle Fino de Escala:** Ajustes de escala percentual (80% a 105%) e margens devem ser aplicados imediatamente no DOM e na regra `@page` de impressão.
 9. **Auditoria Pedagógica:** Questões aplicadas em menos de 180 dias devem exibir o badge de alerta de recência com contagem de dias corridos.
 10. **Templates de Cabeçalho e Brasão:** Todos os 4 estilos de cabeçalho devem renderizar o brasão da instituição (quando presente) e atualizar dinamicamente o valor total em pontos da prova.
+11. **Gestão Flexível de Alternativas:** O docente deve conseguir adicionar alternativas subsequentes (E, F, etc.) ou removê-las tanto no Banco de Questões quanto na criação inline e no modal de edição, respeitando a trava de no mínimo 2 alternativas e reatribuindo a correta caso a opção ativa seja excluída.
+12. **Confinamento de Layout e Fidelidade de Impressão:** Títulos longos no seletor de questões cadastradas não devem provocar estouro de layout do botão `+ Adicionar`, e blocos de código e caixas de implementação na folha A4 devem sempre manter fundo claro e legível, mesmo com o Modo Escuro ativo na aplicação.

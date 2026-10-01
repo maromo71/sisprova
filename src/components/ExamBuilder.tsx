@@ -870,6 +870,28 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
     }
   };
 
+  const handleInlineAddAlternativa = () => {
+    setInlineAlternativas((prev) => [
+      ...prev,
+      { texto: '', correta: false },
+    ]);
+  };
+
+  const handleInlineRemoveAlternativa = (index: number) => {
+    if (inlineAlternativas.length <= 2) {
+      alert('A questão objetiva precisa de no mínimo 2 alternativas.');
+      return;
+    }
+    const wasCorrect = inlineAlternativas[index].correta;
+    setInlineAlternativas((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      if (wasCorrect && next.length > 0) {
+        next[0].correta = true;
+      }
+      return next;
+    });
+  };
+
   // Salvar questão editada diretamente da avaliação
   const handleSaveEditedQuestion = async (
     index: number,
@@ -1319,10 +1341,10 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
                 <span className="text-[11px] font-semibold text-slate-600 dark:text-monokai-sub block uppercase tracking-wider">
                   Adicionar Questão Existente do Banco SQLite
                 </span>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2 w-full min-w-0">
                   <select
                     id="quick-add-select"
-                    className="flex-1 bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded px-2.5 py-1.5 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
+                    className="flex-1 min-w-0 max-w-full truncate bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded px-2.5 py-1.5 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                     defaultValue=""
                   >
                     <option value="" disabled>
@@ -1354,7 +1376,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
                         if (target) handleAddQuestionToExam(target);
                       }
                     }}
-                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 dark:bg-monokai-green dark:hover:bg-monokai-green/90 text-white rounded text-xs font-medium flex items-center gap-1 transition shadow-sm"
+                    className="shrink-0 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 dark:bg-monokai-green dark:hover:bg-monokai-green/90 text-white rounded text-xs font-medium flex items-center gap-1 transition shadow-sm whitespace-nowrap"
                   >
                     <Plus className="w-3.5 h-3.5" /> Adicionar
                   </button>
@@ -1483,7 +1505,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
           {/* ==================================================== */}
           {activeTab === 'nova_inline' && (
             <div className="space-y-3.5 text-xs">
-              <div className="p-2.5 rounded bg-indigo-950/30 border border-indigo-500/20 text-indigo-300 text-[11px] leading-relaxed">
+              <div className="p-2.5 rounded bg-indigo-50 border border-indigo-200 text-indigo-800 dark:bg-indigo-950/40 dark:border-indigo-800/40 dark:text-indigo-300 text-[11px] leading-relaxed">
                 Esta questão será salva permanentemente no SQLite e imediatamente adicionada ao
                 exame. Suporta equações matemáticas LaTeX `$f(x)$` e diagramas Mermaid.
               </div>
@@ -1622,9 +1644,18 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
               {/* Alternativas se Objetiva */}
               {inlineTipo === 'OBJETIVA' ? (
                 <div className="space-y-2 border-t border-slate-200 dark:border-monokai-border pt-2">
-                  <label className="block text-slate-700 dark:text-monokai-sub font-medium">
-                    Alternativas (Marque a correta para o gabarito)
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-slate-700 dark:text-monokai-sub font-medium">
+                      Alternativas (Marque a correta para o gabarito)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleInlineAddAlternativa}
+                      className="flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-700 dark:text-monokai-cyan dark:hover:underline"
+                    >
+                      <Plus className="w-3 h-3" /> + Alternativa
+                    </button>
+                  </div>
                   {inlineAlternativas.map((alt, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <input
@@ -1637,6 +1668,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
                           )
                         }
                         className="text-indigo-600 focus:ring-0 cursor-pointer"
+                        title="Marcar como correta"
                       />
                       <span className="w-5 font-bold text-slate-400 dark:text-monokai-comment">
                         {String.fromCharCode(65 + idx)})
@@ -1651,7 +1683,18 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
                           );
                         }}
                         className="flex-1 bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded px-2 py-1 text-slate-800 dark:text-monokai-fg text-xs"
+                        placeholder={`Texto da alternativa ${String.fromCharCode(65 + idx)}`}
                       />
+                      {inlineAlternativas.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => handleInlineRemoveAlternativa(idx)}
+                          className="text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition p-1"
+                          title="Excluir alternativa"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1766,10 +1809,14 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
                     ? 'bg-white dark:bg-monokai-bg text-indigo-600 dark:text-monokai-cyan shadow-xs font-bold'
                     : 'text-slate-600 dark:text-monokai-comment hover:text-slate-900 dark:hover:text-monokai-fg'
                   }`}
-                title="Folha de Gabaritos do Professor Consolidada (Tipos A, B, C, D)"
+                title={
+                  variacoesConfig.ativo
+                    ? 'Folha de Gabaritos do Professor Consolidada (Tipos A, B, C, D)'
+                    : 'Folha de Gabarito Oficial do Professor (Versão Única)'
+                }
               >
                 <Layers className="w-3.5 h-3.5 text-amber-500" />
-                <span>Gabarito Consolidado</span>
+                <span>{variacoesConfig.ativo ? 'Gabarito Consolidado' : 'Gabarito Oficial'}</span>
               </button>
             </div>
 

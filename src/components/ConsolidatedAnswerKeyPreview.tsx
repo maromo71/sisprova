@@ -82,12 +82,14 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
             <div className="flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4 text-black print:hidden" />
               <span className="text-sm font-bold uppercase">
-                Gabarito Consolidado do Professor
+                {config.ativo ? 'Gabarito Consolidado do Professor' : 'Gabarito Oficial do Professor'}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="inline-block text-xs font-bold bg-black text-white px-2.5 py-0.5 rounded-sm uppercase leading-tight">
-                Múltiplas Versões ({tiposHabilitados.map((t) => `Tipo ${t}`).join(' &bull; ')})
+                {config.ativo
+                  ? `Múltiplas Versões (${tiposHabilitados.map((t) => `Tipo ${t}`).join(' • ')})`
+                  : 'Versão Única (Gabarito Oficial)'}
               </span>
             </div>
           </div>
@@ -103,9 +105,9 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
               <span>{formatarDataBR(data_aplicacao)}</span>
             </div>
             <div className="col-span-3 flex items-center justify-end">
-              <span className="font-bold mr-1.5">Semente (Seed):</span>
+              <span className="font-bold mr-1.5">{config.ativo ? 'Semente (Seed):' : 'Variações:'}</span>
               <span className="font-mono bg-slate-150 px-1.5 py-0.5 rounded border border-slate-300 text-[11px]">
-                #{config.seed}
+                {config.ativo ? `#${config.seed}` : 'Inativas'}
               </span>
             </div>
           </div>
@@ -113,20 +115,30 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
           {/* Regras de Embaralhamento Aplicadas */}
           <div className="mt-2 pt-1.5 border-t border-dashed border-slate-300 text-[11px] text-slate-700 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
-                <Shuffle className="w-3 h-3 text-slate-600" />
-                Ordem das Questões:
-                <strong className={config.embaralharQuestoes ? 'text-black' : 'text-slate-500'}>
-                  {config.embaralharQuestoes ? 'Embaralhada' : 'Original Fixa'}
-                </strong>
-              </span>
-              <span className="flex items-center gap-1">
-                <Shuffle className="w-3 h-3 text-slate-600" />
-                Alternativas Internas:
-                <strong className={config.embaralharAlternativas ? 'text-black' : 'text-slate-500'}>
-                  {config.embaralharAlternativas ? 'Embaralhadas' : 'Originais Fixas'}
-                </strong>
-              </span>
+              {config.ativo ? (
+                <>
+                  <span className="flex items-center gap-1">
+                    <Shuffle className="w-3 h-3 text-slate-600" />
+                    Ordem das Questões:
+                    <strong className={config.embaralharQuestoes ? 'text-black' : 'text-slate-500'}>
+                      {config.embaralharQuestoes ? 'Embaralhada' : 'Original Fixa'}
+                    </strong>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Shuffle className="w-3 h-3 text-slate-600" />
+                    Alternativas Internas:
+                    <strong className={config.embaralharAlternativas ? 'text-black' : 'text-slate-500'}>
+                      {config.embaralharAlternativas ? 'Embaralhadas' : 'Originais Fixas'}
+                    </strong>
+                  </span>
+                </>
+              ) : (
+                <span className="flex items-center gap-1.5 text-slate-700">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                  <span>Modo de Aplicação:</span>
+                  <strong className="text-black">Versão Única Oficial (Ordem Original da Avaliação)</strong>
+                </span>
+              )}
             </div>
             <span className="text-[10px] text-slate-500">
               Total: {itens.length} questões ({totalObjetivas} obj / {totalDissertativas} diss)
@@ -142,7 +154,7 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
             <thead>
               <tr className="bg-slate-200 print:bg-slate-100 text-black border-b-2 border-black">
                 <th className="p-2 border-r border-black text-center w-12 font-black">
-                  Ref (A)
+                  {config.ativo ? 'Ref (A)' : 'Nº'}
                 </th>
                 <th className="p-2 border-r border-black font-bold">
                   Questão / Tópico Avaliado
@@ -158,9 +170,9 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
                 {tiposHabilitados.map((tipo) => (
                   <th
                     key={tipo}
-                    className="p-2 border-r border-black text-center w-24 font-black bg-slate-300/80 print:bg-slate-200 text-sm"
+                    className="p-2 border-r border-black text-center w-28 font-black bg-slate-300/80 print:bg-slate-200 text-sm"
                   >
-                    Prova {tipo}
+                    {config.ativo ? `Prova ${tipo}` : 'Gabarito Oficial'}
                   </th>
                 ))}
               </tr>
@@ -176,7 +188,7 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
                       index % 2 === 1 ? 'bg-slate-50 print:bg-white' : 'bg-white'
                     }`}
                   >
-                    {/* Número de Referência Canônica (Prova A) */}
+                    {/* Número de Referência Canônica */}
                     <td className="p-2 border-r border-black text-center font-black bg-slate-100 print:bg-transparent text-sm">
                       {String(item.ordemOriginal).padStart(2, '0')}
                     </td>
@@ -225,7 +237,7 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
                               </div>
 
                               {/* Posição desta questão na Prova caso tenha havido shuffle de questões */}
-                              {config.embaralharQuestoes && (
+                              {config.ativo && config.embaralharQuestoes && (
                                 <span className="text-[9px] font-bold text-slate-600 mt-0.5">
                                   Questão {String(resp.ordemNaProva).padStart(2, '0')}
                                 </span>
@@ -234,7 +246,7 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
                           ) : (
                             <div className="flex flex-col items-center justify-center text-[10px] text-slate-600">
                               <span className="font-bold text-slate-800 italic">Pautada</span>
-                              {config.embaralharQuestoes && (
+                              {config.ativo && config.embaralharQuestoes && (
                                 <span className="text-[9px] font-bold text-slate-500">
                                   Q.{String(resp.ordemNaProva).padStart(2, '0')}
                                 </span>
@@ -261,10 +273,14 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
           >
             <div className="flex items-center gap-1.5 font-bold uppercase text-[11px] mb-2 border-b border-black pb-1">
               <Award className="w-3.5 h-3.5 text-black" />
-              <span>Distribuição de Respostas Corretas por Versão de Prova</span>
+              <span>
+                {config.ativo
+                  ? 'Distribuição de Respostas Corretas por Versão de Prova'
+                  : 'Distribuição de Respostas Corretas (Gabarito Oficial)'}
+              </span>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 text-xs">
+            <div className={`grid gap-2 text-xs ${config.ativo ? 'grid-cols-4' : 'grid-cols-1 max-w-sm'}`}>
               {tiposHabilitados.map((tipo) => {
                 const dist = distribuicaoGabarito[tipo] || {};
                 const letras = ['A', 'B', 'C', 'D', 'E'];
@@ -275,7 +291,7 @@ export const ConsolidatedAnswerKeyPreview = forwardRef<
                     className="border border-black p-2 bg-white rounded-none"
                   >
                     <div className="font-black text-center text-xs border-b border-slate-300 pb-1 mb-1.5 bg-slate-100">
-                      Prova {tipo}
+                      {config.ativo ? `Prova ${tipo}` : 'Gabarito Oficial da Avaliação'}
                     </div>
                     <div className="grid grid-cols-5 gap-1 text-center font-mono text-[11px]">
                       {letras.map((l) => (

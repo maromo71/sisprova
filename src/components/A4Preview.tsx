@@ -63,6 +63,35 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
         }
       : {};
 
+    // Componentes de Markdown compartilhados para manter o estilo limpo da folha impressa (fundo claro)
+    // independentemente do tema do app (claro ou escuro) e em ambas as visualizações (Aluno e Gabarito)
+    const markdownComponents = {
+      code({ className, children, ...props }: any) {
+        const match = /language-(\w+)/.exec(className || '');
+        if (match && match[1] === 'mermaid') {
+          return (
+            <div className="my-2 flex justify-center bg-white p-2 rounded-lg border border-slate-200 print:border-none print:p-0 shadow-sm">
+              <MermaidRenderer code={String(children).trim()} />
+            </div>
+          );
+        }
+        return match ? (
+          <div className="my-2 border border-slate-300 bg-slate-50 p-2 rounded font-mono text-xs overflow-x-auto print:border-black print:bg-white print:text-black shadow-sm">
+            <code className={`${className || ''} text-slate-800`} {...props}>
+              {children}
+            </code>
+          </div>
+        ) : (
+          <code
+            className="bg-slate-100 border border-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-mono text-xs print:border-slate-400 print:bg-slate-100 print:text-black"
+            {...props}
+          >
+            {children}
+          </code>
+        );
+      },
+    };
+
     return (
       <div className="w-full flex justify-center py-6 px-2 print:p-0 print:m-0 print:bg-white print:block overflow-y-auto print:overflow-visible">
         {/* Folha A4 Simulação Visual e Formato de Impressão */}
@@ -462,32 +491,7 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
                           <ReactMarkdown
                             remarkPlugins={[remarkMath]}
                             rehypePlugins={[rehypeKatex]}
-                            components={{
-                              code({ className, children, ...props }) {
-                                const match = /language-(\w+)/.exec(className || '');
-                                if (match && match[1] === 'mermaid') {
-                                  return (
-                                    <div className="my-2 flex justify-center bg-white p-2 rounded-lg border border-slate-200 dark:border-monokai-border dark:bg-white print:border-none print:p-0 shadow-sm">
-                                      <MermaidRenderer code={String(children).trim()} />
-                                    </div>
-                                  );
-                                }
-                                return match ? (
-                                  <div className="my-2 border border-slate-300 dark:border-monokai-border bg-slate-50 dark:bg-monokai-bg p-2 rounded font-mono text-xs overflow-x-auto print:border-black print:bg-white print:text-black shadow-sm">
-                                    <code className={`${className || ''} text-slate-800 dark:text-monokai-fg`} {...props}>
-                                      {children}
-                                    </code>
-                                  </div>
-                                ) : (
-                                  <code
-                                    className="bg-slate-100 border border-slate-200 dark:bg-monokai-card dark:border-monokai-border text-slate-800 dark:text-monokai-green px-1.5 py-0.5 rounded font-mono text-xs print:border-slate-400 print:bg-slate-100 print:text-black"
-                                    {...props}
-                                  >
-                                    {children}
-                                  </code>
-                                );
-                              },
-                            }}
+                            components={markdownComponents}
                           >
                             {q.enunciado_markdown}
                           </ReactMarkdown>
@@ -495,7 +499,7 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
 
                         {/* Diagrama Mermaid Se Existente */}
                         {q.diagrama_mermaid && q.diagrama_mermaid.trim() !== '' && (
-                          <div className="my-2 flex justify-center bg-white p-2 rounded-lg border border-slate-200 dark:border-monokai-border dark:bg-white print:border-none print:p-0 shadow-sm">
+                          <div className="my-2 flex justify-center bg-white p-2 rounded-lg border border-slate-200 print:border-none print:p-0 shadow-sm">
                             <MermaidRenderer code={q.diagrama_mermaid} />
                           </div>
                         )}
@@ -547,6 +551,7 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
                               <ReactMarkdown
                                 remarkPlugins={[remarkMath]}
                                 rehypePlugins={[rehypeKatex]}
+                                components={markdownComponents}
                               >
                                 {q.resposta_esperada}
                               </ReactMarkdown>
@@ -568,8 +573,8 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
 
                         {/* Caixa de Código (Para Questões Tipo Código na Versão Aluno ou se não houver resposta esperada) */}
                         {q.tipo_questao === 'CODIGO' && q.linhas_resposta > 0 && (!showAnswers || !q.resposta_esperada) && (
-                          <div className="mt-2.5 border border-slate-300 dark:border-monokai-border rounded p-2 bg-slate-50 dark:bg-monokai-panel/40 print:bg-white print:border-black">
-                            <div className="text-[9.5px] uppercase font-sans font-bold text-slate-600 dark:text-monokai-comment mb-1 border-b border-slate-200 dark:border-monokai-divider pb-1 print:text-black">
+                          <div className="mt-2.5 border border-slate-300 rounded p-2 bg-slate-50 print:bg-white print:border-black">
+                            <div className="text-[9.5px] uppercase font-sans font-bold text-slate-600 mb-1 border-b border-slate-200 pb-1 print:text-black">
                               Área de Código / Implementação:
                             </div>
                             <div
@@ -579,14 +584,14 @@ export const A4Preview = forwardRef<HTMLDivElement, A4PreviewProps>(
                                   60
                                 )}px`,
                               }}
-                              className="font-mono text-xs text-slate-500 dark:text-monokai-sub flex flex-col justify-between"
+                              className="font-mono text-xs text-slate-500 flex flex-col justify-between"
                             >
                               {Array.from({ length: q.linhas_resposta }).map((_, lIdx) => (
                                 <div
                                   key={lIdx}
-                                  className="border-b border-dashed border-slate-200 dark:border-monokai-divider/40 print:border-slate-300 h-4.5 flex items-center text-[9.5px] text-slate-400 select-none"
+                                  className="border-b border-dashed border-slate-200 print:border-slate-300 h-4.5 flex items-center text-[9.5px] text-slate-400 select-none"
                                 >
-                                  <span className="w-5 text-right pr-2 text-slate-400 dark:text-monokai-comment font-mono">
+                                  <span className="w-5 text-right pr-2 text-slate-400 font-mono">
                                     {lIdx + 1}
                                   </span>
                                 </div>

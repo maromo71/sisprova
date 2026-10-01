@@ -192,6 +192,28 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
     setIsEditing(true);
   };
 
+  const handleAddAlternativa = () => {
+    setAlternativas((prev) => [
+      ...prev,
+      { texto: '', correta: false },
+    ]);
+  };
+
+  const handleRemoveAlternativa = (index: number) => {
+    if (alternativas.length <= 2) {
+      alert('A questão objetiva precisa de no mínimo 2 alternativas.');
+      return;
+    }
+    const wasCorrect = alternativas[index].correta;
+    setAlternativas((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      if (wasCorrect && next.length > 0) {
+        next[0].correta = true;
+      }
+      return next;
+    });
+  };
+
   const handleDelete = async (id: number) => {
     if (confirm('Tem certeza que deseja excluir esta questão do SQLite?')) {
       try {
@@ -480,9 +502,18 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
 
               {tipoQuestao === 'OBJETIVA' ? (
                 <div className="space-y-2 border-t border-slate-200 dark:border-monokai-border pt-3">
-                  <label className="block text-xs font-medium text-slate-700 dark:text-monokai-sub">
-                    Alternativas (Marque a correta)
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-monokai-sub">
+                      Alternativas (Marque a opção correta no gabarito)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleAddAlternativa}
+                      className="flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-700 dark:text-monokai-cyan dark:hover:underline"
+                    >
+                      <Plus className="w-3 h-3" /> + Alternativa
+                    </button>
+                  </div>
                   {alternativas.map((alt, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <input
@@ -495,6 +526,7 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
                           )
                         }
                         className="text-indigo-600 cursor-pointer"
+                        title="Marcar como correta"
                       />
                       <span className="text-xs font-bold text-slate-500 dark:text-monokai-comment w-6">
                         {String.fromCharCode(65 + idx)})
@@ -511,6 +543,16 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
                         className="flex-1 bg-white dark:bg-monokai-panel border border-slate-300 dark:border-monokai-border rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-monokai-fg focus:outline-none focus:border-indigo-500 dark:focus:border-monokai-cyan"
                         placeholder={`Texto da alternativa ${String.fromCharCode(65 + idx)}`}
                       />
+                      {alternativas.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAlternativa(idx)}
+                          className="text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition p-1"
+                          title="Excluir alternativa"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

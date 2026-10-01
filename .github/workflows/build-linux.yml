@@ -1,0 +1,64 @@
+name: Build Linux (.AppImage / .deb)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar Toolchain Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Instalar Dependências do Sistema (Linux / WebKitGTK)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            build-essential \
+            curl \
+            wget \
+            file
+
+      - name: Instalar Dependências do Frontend
+        run: npm ci
+
+      - name: Compilar Aplicativo Tauri (.AppImage e .deb)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'SisProva ${{ github.ref_name }}'
+          releaseBody: 'Build oficial do SisProva compilado automaticamente para Linux (.AppImage universal e pacote .deb para Debian/Ubuntu).'
+          releaseDraft: false
+          prerelease: false
+
+      - name: Salvar Artefatos (.AppImage e .deb) para Download
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SisProva-Linux-Packages
+          path: |
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/deb/*.deb
+          if-no-files-found: warn

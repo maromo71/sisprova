@@ -4,80 +4,126 @@ Aplicativo desktop 100% offline para criação de avaliações acadêmicas, gest
 
 ---
 
-## 💾 Download e Instalação (Windows)
+## 💾 Download e Instalação Multiplataforma
 
-Você pode baixar os instaladores diretamente da pasta [`installers/`](installers/) deste repositório ou pela aba [Releases do GitHub](https://github.com/maromo71/sisprova/releases):
+O SisProva está disponível para **Windows**, **macOS** e **Linux**. Você pode obter os instaladores compilados na aba [Releases do GitHub](https://github.com/maromo71/sisprova/releases) ou na pasta local [`installers/`](installers/) (para Windows):
 
-| Tipo de Pacote | Arquivo | Público-Alvo | Tamanho |
-| :--- | :--- | :--- | :--- |
-| **Assistente de Instalação (.exe)** | [`AvaliadorApp_1.0.0_x64-setup.exe`](installers/AvaliadorApp_1.0.0_x64-setup.exe) | **Professores e Coordenadores** (PC pessoal ou notebook institucional) | ~5.2 MB |
-| **Pacote Windows Installer (.msi)** | [`AvaliadorApp_1.0.0_x64.msi`](installers/AvaliadorApp_1.0.0_x64.msi) | **Administradores de TI** (Instalação em lote via GPO, Intune, SCCM ou scripts) | ~6.5 MB |
+| Plataforma | Pacote / Formato | Descrição & Compatibilidade |
+| :--- | :--- | :--- |
+| **🪟 Windows** | [`.exe` (Assistente)](installers/AvaliadorApp_1.0.0_x64-setup.exe) | Instalação individual com atalhos para professores (Win 10/11 64-bit) |
+| **🪟 Windows** | [`.msi` (Installer)](installers/AvaliadorApp_1.0.0_x64.msi) | Pacote corporativo para administradores de TI (GPO, Intune, SCCM) |
+| **🍎 macOS** | `.dmg` (Universal) | Imagem de disco compatível com Apple Silicon (M1/M2/M3/M4) e Intel |
+| **🐧 Linux** | `.AppImage` (Universal) | Executável portátil para qualquer distribuição (Ubuntu, Fedora, Arch, Mint, etc.) |
+| **🐧 Linux** | `.deb` (Debian / Ubuntu) | Pacote de instalação nativo para Debian, Ubuntu, Linux Mint e Pop!_OS |
 
 ---
 
-### 👨‍🏫 Guia de Instalação para o Professor (Uso Individual)
+### 🪟 Guia de Instalação no Windows
 
-Se você é professor ou coordenador e deseja utilizar o SisProva em seu computador ou notebook:
-
+#### 👨‍🏫 Uso Individual (Professores e Coordenadores)
 1. **Baixar o Instalador:** Faça o download do arquivo [`AvaliadorApp_1.0.0_x64-setup.exe`](installers/AvaliadorApp_1.0.0_x64-setup.exe).
 2. **Executar:** Dê um duplo clique no arquivo baixado para iniciar o assistente.
 3. **Aviso do Windows SmartScreen (se exibido):**
-   - Como o instalador é distribuído diretamente pela instituição sem certificado comercial pago EV, o Windows Defender pode exibir a tela *"O Windows protegeu o seu computador"*.
+   - Como o instalador é distribuído diretamente sem certificado comercial pago EV, o Windows Defender pode exibir a tela *"O Windows protegeu o seu computador"*.
    - Clique no link sublinhado **"Mais informações"** e em seguida no botão **"Executar assim mesmo"**.
 4. **Concluir a Instalação:**
    - Escolha o diretório de destino (ou mantenha o padrão sugerido) e clique em **Avançar** e **Instalar**.
    - O assistente criará automaticamente o atalho do **SisProva / AvaliadorApp** na Área de Trabalho e no Menu Iniciar.
-5. **Pronto para Usar:**
-   - Ao abrir pela primeira vez, o aplicativo já cria e inicializa o banco de dados local SQLite de forma 100% autônoma e segura.
-   - O sistema funciona completamente offline — não necessita de internet nem login em nuvem.
+5. **Dados Locais:** O banco SQLite é salvo de forma isolada em `%APPDATA%\AvaliadorApp\data.db`.
+
+#### 🏛️ Deploy em Massa / Laboratórios (Administradores de TI)
+Utilize o pacote padrão Microsoft Installer [`AvaliadorApp_1.0.0_x64.msi`](installers/AvaliadorApp_1.0.0_x64.msi).
+
+1. **Instalação Silenciosa via Linha de Comando:**
+   ```cmd
+   msiexec /i AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart
+   ```
+2. **Instalação com Log de Auditoria:**
+   ```cmd
+   msiexec /i AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart /L*V "C:\Logs\sisprova_install.log"
+   ```
+3. **Desinstalação Remota Silenciosa:**
+   ```cmd
+   msiexec /x AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart
+   ```
+4. **Active Directory (GPO) e Microsoft Intune:**
+   - Compatível com GPO via *Instalação de software (Atribuído)*.
+   - Compatível com Intune/SCCM via *Aplicativo de Linha de Negócios (LOB)* com argumento `/quiet /qn /norestart`.
 
 ---
 
-### 🏛️ Guia de Instalação para o Administrador de TI da Instituição (Deploy em Massa / Laboratórios)
+### 🍎 Guia de Instalação no macOS
 
-Se você é administrador de sistemas, analista de infraestrutura ou suporte de TI responsável por equipar laboratórios, salas de aula ou máquinas corporativas:
+O instalador para Mac é distribuído como **Universal Binary**, compatível nativamente tanto com os processadores **Apple Silicon (M1, M2, M3, M4)** quanto com Macs legados com processadores **Intel**.
 
-Utilize o pacote padrão Microsoft Installer [`AvaliadorApp_1.0.0_x64.msi`](installers/AvaliadorApp_1.0.0_x64.msi).
+1. **Baixar o arquivo `.dmg`:** Acesse a aba [Releases do GitHub](https://github.com/maromo71/sisprova/releases) e baixe o arquivo `SisProva_*.dmg`.
+2. **Montar e Instalar:**
+   - Dê um duplo clique no arquivo `.dmg` para abri-lo.
+   - Arraste o ícone do **SisProva / AvaliadorApp** para a pasta **Aplicativos (Applications)**.
+3. **Primeira Abertura & Gatekeeper (Segurança do macOS):**
+   - Como o aplicativo é acadêmico e compilado diretamente pelo GitHub Actions sem assinatura comercial anual da Apple Developer, o macOS exibirá uma mensagem de segurança (*"AvaliadorApp não pode ser aberto porque a Apple não pode verificar se há software mal-intencionado"*).
+   - **Opção 1 (Interface Gráfica — Recomendado):**
+     1. Abra a pasta **Aplicativos** no Finder.
+     2. Clique com o **botão direito** (ou segure `Control` e clique) no **SisProva** e selecione **"Abrir"**.
+     3. Na caixa de diálogo que surgir, clique em **"Abrir"** para confirmar. Essa autorização é necessária apenas na primeira execução.
+   - **Opção 2 (Ajustes do Sistema):**
+     - Vá em **Ajustes do Sistema > Privacidade e Segurança**, role até a seção **Segurança** e clique em **"Abrir Mesmo Assim"**.
+   - **Opção 3 (Terminal):**
+     ```bash
+     xattr -d com.apple.quarantine /Applications/AvaliadorApp.app
+     ```
+4. **Dados Locais:** O banco SQLite no macOS fica armazenado em `~/Library/Application Support/com.avaliadorapp.desktop/data.db`.
 
-#### 1. Instalação Silenciosa via Linha de Comando (CMD / PowerShell / Scripts em Lote)
-Para instalar em segundo plano em todas as máquinas sem interação do usuário:
+---
 
-```cmd
-msiexec /i AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart
-```
+### 🐧 Guia de Instalação no Linux
 
-#### 2. Instalação com Geração de Log de Auditoria
-Recomendado para homologação e verificação de sucesso na implantação:
+O SisProva para Linux é distribuído em duas opções para atender a qualquer distribuição:
 
-```cmd
-msiexec /i AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart /L*V "C:\Logs\sisprova_install.log"
-```
+#### Opção 1: `.AppImage` (Universal — Qualquer Distribuição)
+O formato AppImage é auto-contido e portátil. Não exige privilégios de administrador (`root`/`sudo`) nem instalação de pacotes adicionais.
 
-#### 3. Desinstalação Remota Silenciosa
-Para remover o aplicativo de todas as estações do parque via script:
+1. Baixe o arquivo `SisProva_*.AppImage` na aba [Releases do GitHub](https://github.com/maromo71/sisprova/releases).
+2. Dê permissão de execução ao arquivo:
+   - **Pelo Terminal:**
+     ```bash
+     chmod +x SisProva_*.AppImage
+     ./SisProva_*.AppImage
+     ```
+   - **Pela Interface Gráfica:** Clique com o botão direito no arquivo baixado -> **Propriedades** -> aba **Permissões** -> marque a opção **"Permitir execução do arquivo como um programa"**.
+3. Dê um duplo clique para abrir o aplicativo diretamente.
 
-```cmd
-msiexec /x AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart
-```
+#### Opção 2: `.deb` (Debian, Ubuntu, Linux Mint, Pop!_OS)
+Para quem prefere integração nativa com o gerenciador de pacotes do sistema:
 
-#### 4. Implantação via Active Directory (GPO)
-O arquivo `.msi` foi compilado respeitando a estrutura do Windows Installer da Microsoft:
-- Abra o **Group Policy Management Console (gpmc.msc)**.
-- Crie ou edite a GPO do laboratório/unidade: `Configuração do Computador -> Políticas -> Configurações de Software -> Instalação de software`.
-- Clique com o botão direito -> **Novo -> Pacote**.
-- Aponte para o caminho de rede compartilhado (UNC) do `AvaliadorApp_1.0.0_x64.msi`.
-- Selecione o método de implantação **Atribuído (Assigned)**.
+1. Baixe o arquivo `SisProva_*_amd64.deb` na aba [Releases do GitHub](https://github.com/maromo71/sisprova/releases).
+2. Instale com um duplo clique pela Central de Aplicativos ou via terminal:
+   ```bash
+   sudo apt install ./SisProva_*_amd64.deb
+   ```
+3. O atalho do SisProva aparecerá diretamente no menu de aplicativos do seu ambiente gráfico (GNOME, KDE, Cinnamon, etc.).
 
-#### 5. Implantação via Microsoft Intune ou MECM/SCCM
-- No portal do Intune, adicione um aplicativo do tipo **Aplicativo de linha de negócios (Line-of-business app)**.
-- Carregue o arquivo `AvaliadorApp_1.0.0_x64.msi`.
-- Argumentos de linha de comando: `/quiet /qn /norestart`.
-- Contexto de instalação: **Dispositivo (Device)**.
+#### 📦 Pré-requisitos de Execução no Linux:
+- Distribuição x86_64 moderna (Ubuntu 20.04+, Debian 11+, Fedora 36+, etc.).
+- Biblioteca `WebKit2GTK 4.1` (já presente por padrão em ambientes desktop atuais). Caso necessário:
+  ```bash
+  # Ubuntu / Debian / Linux Mint:
+  sudo apt install libwebkit2gtk-4.1-0 libappindicator3-1
+  # Fedora:
+  sudo dnf install webkit2gtk4.1 libappindicator-gtk3
+  ```
+- **Dados Locais:** O banco SQLite no Linux fica armazenado em `~/.local/share/com.avaliadorapp.desktop/data.db`.
 
-#### 6. Pré-requisitos nas Estações
-- Windows 10 (64-bit) versão 1809+ ou Windows 11.
-- Microsoft Edge WebView2 Runtime (já presente nativamente nas versões atuais do Windows 10 e Windows 11).
-- Os dados do banco SQLite de cada usuário são armazenados de forma isolada em `%APPDATA%\AvaliadorApp\data.db`.
+---
+
+### 🤖 Compilação Automatizada Multiplataforma (GitHub Actions CI/CD)
+
+O repositório possui fluxos de trabalho automatizados no GitHub Actions para gerar os binários oficiais:
+
+- **macOS:** [`.github/workflows/build-mac.yml`](.github/workflows/build-mac.yml) — Compila em runner macOS gerando o pacote `.dmg` Universal (Intel + Apple Silicon).
+- **Linux:** [`.github/workflows/build-linux.yml`](.github/workflows/build-linux.yml) — Compila em runner Ubuntu gerando os pacotes `.AppImage` e `.deb`.
+
+Os fluxos podem ser acionados manualmente na aba **Actions** do GitHub ou automaticamente ao publicar uma tag de versão (`git tag vX.Y.Z && git push origin vX.Y.Z`).
 
 ---
 

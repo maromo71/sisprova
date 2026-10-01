@@ -10,8 +10,8 @@ O SisProva está disponível para **Windows**, **macOS** e **Linux**. Você pode
 
 | Plataforma | Pacote / Formato | Descrição & Compatibilidade |
 | :--- | :--- | :--- |
-| **🪟 Windows** | [`.exe` (Assistente)](installers/AvaliadorApp_1.0.0_x64-setup.exe) | Instalação individual com atalhos para professores (Win 10/11 64-bit) |
-| **🪟 Windows** | [`.msi` (Installer)](installers/AvaliadorApp_1.0.0_x64.msi) | Pacote corporativo para administradores de TI (GPO, Intune, SCCM) |
+| **🪟 Windows** | [`.exe` (Assistente)](installers/AvaliadorApp_1.1.0_x64-setup.exe) | Instalação individual com atalhos para professores (Win 10/11 64-bit) |
+| **🪟 Windows** | [`.msi` (Installer)](installers/AvaliadorApp_1.1.0_x64.msi) | Pacote corporativo para administradores de TI (GPO, Intune, SCCM) |
 | **🍎 macOS** | `.dmg` (Universal) | Imagem de disco compatível com Apple Silicon (M1/M2/M3/M4) e Intel |
 | **🐧 Linux** | `.AppImage` (Universal) | Executável portátil para qualquer distribuição (Ubuntu, Fedora, Arch, Mint, etc.) |
 | **🐧 Linux** | `.deb` (Debian / Ubuntu) | Pacote de instalação nativo para Debian, Ubuntu, Linux Mint e Pop!_OS |
@@ -21,7 +21,7 @@ O SisProva está disponível para **Windows**, **macOS** e **Linux**. Você pode
 ### 🪟 Guia de Instalação no Windows
 
 #### 👨‍🏫 Uso Individual (Professores e Coordenadores)
-1. **Baixar o Instalador:** Faça o download do arquivo [`AvaliadorApp_1.0.0_x64-setup.exe`](installers/AvaliadorApp_1.0.0_x64-setup.exe).
+1. **Baixar o Instalador:** Faça o download do arquivo [`AvaliadorApp_1.1.0_x64-setup.exe`](installers/AvaliadorApp_1.1.0_x64-setup.exe).
 2. **Executar:** Dê um duplo clique no arquivo baixado para iniciar o assistente.
 3. **Aviso do Windows SmartScreen (se exibido):**
    - Como o instalador é distribuído diretamente sem certificado comercial pago EV, o Windows Defender pode exibir a tela *"O Windows protegeu o seu computador"*.
@@ -32,19 +32,19 @@ O SisProva está disponível para **Windows**, **macOS** e **Linux**. Você pode
 5. **Dados Locais:** O banco SQLite é salvo de forma isolada em `%APPDATA%\AvaliadorApp\data.db`.
 
 #### 🏛️ Deploy em Massa / Laboratórios (Administradores de TI)
-Utilize o pacote padrão Microsoft Installer [`AvaliadorApp_1.0.0_x64.msi`](installers/AvaliadorApp_1.0.0_x64.msi).
+Utilize o pacote padrão Microsoft Installer [`AvaliadorApp_1.1.0_x64.msi`](installers/AvaliadorApp_1.1.0_x64.msi).
 
 1. **Instalação Silenciosa via Linha de Comando:**
    ```cmd
-   msiexec /i AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart
+   msiexec /i AvaliadorApp_1.1.0_x64.msi /quiet /qn /norestart
    ```
 2. **Instalação com Log de Auditoria:**
    ```cmd
-   msiexec /i AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart /L*V "C:\Logs\sisprova_install.log"
+   msiexec /i AvaliadorApp_1.1.0_x64.msi /quiet /qn /norestart /L*V "C:\Logs\sisprova_install.log"
    ```
 3. **Desinstalação Remota Silenciosa:**
    ```cmd
-   msiexec /x AvaliadorApp_1.0.0_x64.msi /quiet /qn /norestart
+   msiexec /x AvaliadorApp_1.1.0_x64.msi /quiet /qn /norestart
    ```
 4. **Active Directory (GPO) e Microsoft Intune:**
    - Compatível com GPO via *Instalação de software (Atribuído)*.

@@ -15,6 +15,8 @@ O SisProva está disponível para **Windows**, **macOS** e **Linux**. Você pode
 | **🍎 macOS** | `.dmg` (Universal) | Imagem de disco compatível com Apple Silicon (M1/M2/M3/M4) e Intel |
 | **🐧 Linux** | `.AppImage` (Universal) | Executável portátil para qualquer distribuição (Ubuntu, Fedora, Arch, Mint, etc.) |
 | **🐧 Linux** | `.deb` (Debian / Ubuntu) | Pacote de instalação nativo para Debian, Ubuntu, Linux Mint e Pop!_OS |
+| **🤖 Android** | `.apk` (Instalação Direta) | Pacote instalador para smartphones e tablets Android (Android 7.0+) |
+| **📱 iOS** | `.ipa` / Projeto Xcode | Pacote móvel para iPhone e iPad (via TestFlight ou Xcode) |
 
 ---
 
@@ -116,14 +118,41 @@ Para quem prefere integração nativa com o gerenciador de pacotes do sistema:
 
 ---
 
+### 🤖 Guia de Instalação no Android (.apk)
+
+O SisProva para Android permite levar o banco de questões e montagem de avaliações diretamente no bolso ou tablet:
+
+1. **Baixar o APK:** Acesse a aba [Releases do GitHub](https://github.com/maromo71/sisprova/releases) ou baixe o artefato gerado na aba **Actions**.
+2. **Transferir para o Celular:** Você pode baixar diretamente pelo navegador do smartphone ou transferir via cabo USB, Google Drive ou WhatsApp.
+3. **Instalar:**
+   - Abra o arquivo `.apk` baixado através do gerenciador de arquivos do aparelho.
+   - Caso o Android solicite permissão, habilite a opção **"Permitir desta fonte"** (Instalação de fontes desconhecidas).
+   - Confirme a instalação tocando em **"Instalar"**.
+4. **Armazenamento Seguro:** O banco de dados SQLite é mantido no sandbox privado do app no Android, isolado de outros aplicativos.
+
+---
+
+### 📱 Guia de Execução no iPhone / iPad (iOS)
+
+O projeto iOS é gerado nativamente pelo Tauri v2 para execução no ecossistema Apple:
+
+1. Baixe o pacote compactado `SisProva-iOS-Xcode.tar.gz` na aba [Releases do GitHub](https://github.com/maromo71/sisprova/releases) ou na aba **Actions**.
+2. Descompacte no seu Mac e abra a pasta gerada no **Xcode**.
+3. Conecte seu iPhone via cabo, selecione seu dispositivo no seletor do Xcode e clique em **Run** (ou publique via **TestFlight** para distribuição a professores).
+
+---
+
 ### 🤖 Compilação Automatizada Multiplataforma (GitHub Actions CI/CD)
 
-O repositório possui fluxos de trabalho automatizados no GitHub Actions para gerar os binários oficiais:
+O repositório possui fluxos de trabalho automatizados no GitHub Actions para compilar em nuvem e gerar todos os binários oficiais sem necessidade de ambiente local complexo:
 
+- **Windows:** Instaladores `.exe` e `.msi` disponíveis diretamente no repositório.
 - **macOS:** [`.github/workflows/build-mac.yml`](.github/workflows/build-mac.yml) — Compila em runner macOS gerando o pacote `.dmg` Universal (Intel + Apple Silicon).
 - **Linux:** [`.github/workflows/build-linux.yml`](.github/workflows/build-linux.yml) — Compila em runner Ubuntu gerando os pacotes `.AppImage` e `.deb`.
+- **Android:** [`.github/workflows/build-android.yml`](.github/workflows/build-android.yml) — Compila em runner Ubuntu com Android SDK/NDK gerando o arquivo `.apk` pronto para instalar.
+- **iOS / iPhone:** [`.github/workflows/build-ios.yml`](.github/workflows/build-ios.yml) — Compila em runner macOS Apple Silicon gerando o projeto Xcode e `.ipa`.
 
-Os fluxos podem ser acionados manualmente na aba **Actions** do GitHub ou automaticamente ao publicar uma tag de versão (`git tag vX.Y.Z && git push origin vX.Y.Z`).
+Os fluxos podem ser acionados manualmente na aba **Actions** do GitHub (botão *"Run workflow"*) ou automaticamente ao publicar uma tag de versão (`git tag vX.Y.Z && git push origin vX.Y.Z`).
 
 ---
 

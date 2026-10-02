@@ -5,10 +5,6 @@ description = "Sistema Desktop Offline para Criação de Avaliações e Banco de
 authors = ["AvaliadorApp Team"]
 edition = "2021"
 
-[lib]
-name = "avaliador_app_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
-
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 

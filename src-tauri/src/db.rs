@@ -2,7 +2,6 @@ use rusqlite::{params, Connection, Result};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
-use tauri::Manager;
 
 pub struct DbState(pub Mutex<Connection>);
 
@@ -15,22 +14,6 @@ pub fn resolve_db_path() -> PathBuf {
             .join("data.db")
     } else {
         PathBuf::from("data.db")
-    }
-}
-
-pub fn resolve_db_path_with_app<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> PathBuf {
-    #[cfg(target_os = "windows")]
-    {
-        let legacy_path = resolve_db_path();
-        if legacy_path.exists() {
-            return legacy_path;
-        }
-    }
-
-    if let Ok(app_data_dir) = app.path().app_data_dir() {
-        app_data_dir.join("data.db")
-    } else {
-        resolve_db_path()
     }
 }
 

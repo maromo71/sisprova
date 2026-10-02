@@ -52,7 +52,6 @@ IMPACTO │  [MELH-06] Clonagem & Exclusão Segura (✅) [MELH-05] Importação 
 | **MELH-10** | Histórico de Utilização e Frequência de Questões | Eixo 5 | Baixa-Média | ⭐⭐⭐⭐ | ✅ **IMPLEMENTADO** |
 | **MELH-08** | Templates de Cabeçalho Institucional Personalizáveis | Eixo 6 | Baixa | ⭐⭐⭐⭐ | ✅ **IMPLEMENTADO** |
 | **MELH-13** | Usabilidade, Gestão Flexível de Alternativas e Fidelidade A4 | Eixos 5 e 6 | Baixa | ⭐⭐⭐⭐ | ✅ **IMPLEMENTADO** |
-| **MELH-14** | Suporte Multiplataforma Mobile (Android e iOS) com Tauri v2 | Todos | Alta | ⭐⭐⭐⭐⭐ | 🔄 **EM VALIDAÇÃO** |
 
 ---
 
@@ -302,23 +301,6 @@ IMPACTO │  [MELH-06] Clonagem & Exclusão Segura (✅) [MELH-05] Importação 
 
 ---
 
-### 📌 [MELH-14] Suporte Multiplataforma Mobile (Android e iOS) com Tauri v2 — 🔄 **EM VALIDAÇÃO**
-- **Status:** Arquitetura do backend Rust adaptada para o padrão de biblioteca mobile do Tauri v2, com abstração de diretórios sandboxed para SQLite e validação de compilação desktop/mobile.
-- **Funcionalidades Entregues e Especificação Técnica:**
-  - **Reestruturação Arquitetural Rust (`lib.rs` + `main.rs`):**
-    - Configuração de crate como biblioteca dinâmica e estática no `Cargo.toml` (`[lib] name = "avaliador_app_lib" crate-type = ["staticlib", "cdylib", "rlib"]`).
-    - Criação de `src-tauri/src/lib.rs` com ponto de entrada canônico `#[cfg_attr(mobile, tauri::mobile_entry_point)]` e função executora `pub fn run()`.
-    - `src-tauri/src/main.rs` desacoplado para simples despachante da biblioteca, garantindo compatibilidade binária nativa tanto em sistemas Desktop (Windows/macOS/Linux) quanto em sistemas móveis (Android NDK / iOS Xcode).
-  - **Abstração Sandboxed de Persistência SQLite (`resolve_db_path_with_app`):**
-    - No ambiente mobile (Android/iOS), caminhos absolutos como `%APPDATA%` não existem e o sistema operacional bloqueia escritas fora do container da aplicação.
-    - Implementação de `resolve_db_path_with_app(&app)`, consultando o diretório de dados canônico via Tauri (`app.path().app_data_dir()`), mantendo a compatibilidade retroativa com arquivos legados do Windows.
-    - Injeção automática da referência de aplicação nos comandos de exportação e restauração de backup (`import_backup_dialog` e `get_db_path`).
-  - **Ciclo de Distribuição e Empacotamento:**
-    - **Android:** Suporte a compilação de APKs diretos para instalação e AABs para publicação na Google Play Store via `npx tauri android build`.
-    - **iOS:** Suporte a geração de projeto Xcode e pacote `.ipa` via `npx tauri ios build` integrado com GitHub Actions macOS runners.
-
----
-
 ## 4. Síntese dos Ciclos de Entrega
 
 | Ciclo | Eixo Principal | Status | Entregas Chave |
@@ -327,9 +309,7 @@ IMPACTO │  [MELH-06] Clonagem & Exclusão Segura (✅) [MELH-05] Importação 
 | **Ciclo 2** | Interoperabilidade e Backup | **100% CONCLUÍDO** | **MELH-05** (Importação/Exportação JSON e Markdown em lote) + **MELH-07** (Desfazer/Refazer `Ctrl+Z`/`Ctrl+Y`) + **MELH-09** (Backup atômico `.sisprova` via SQLite VACUUM) |
 | **Ciclo 3** | Formatação Avançada e Auditoria | **100% CONCLUÍDO** | **MELH-12** (Controle fino de escala 80-105%, densidade e margens A4) + **MELH-10** (Histórico, kpis de uso e auditoria de recência <6m) + **MELH-08** (4 Templates de cabeçalho, upload de brasão e pontuação reativa) |
 | **Ciclo 4** | Ecossistema Externo e Interoperabilidade | **100% CONCLUÍDO** | **MELH-04** (Exportação completa para Microsoft Word `.docx` editável e LaTeX `.tex` acadêmico com pacotes AMS e listings) |
-| **Ciclo 5** | Expansão Multiplataforma Mobile (Android & iOS) | **EM EXECUÇÃO** | **MELH-14** (Arquitetura Tauri 2 Mobile, lib.rs compilável, SQLite em sandbox móvel, geração de APK/AAB e IPA) |
 
-> 🏆 **Resultado Geral do Roadmap SisProva:** **100% das 11 melhorias essenciais de desktop entregues**, com a expansão mobile (Ciclo 5) em processo ativo de teste e validação de empacotamento Android.
-
+> 🏆 **Resultado Geral do Roadmap SisProva:** **100% das 11 melhorias estratégicas implementadas e operacionais**, cobrindo ponta a ponta a montagem de provas, variações antifraude, correção óptica OMR, histórico docente, exportações multi-formato e personalização tipográfica completa.
 
 

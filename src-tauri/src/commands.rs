@@ -963,7 +963,7 @@ pub fn import_backup_dialog(
         let mut conn_guard = state.0.lock().map_err(|e| e.to_string())?;
         *conn_guard = Connection::open_in_memory().map_err(|e| e.to_string())?;
 
-        let db_path = crate::db::resolve_db_path_with_app(&app);
+        let db_path = crate::db::resolve_db_path();
 
         // 3. Cria backup do arquivo atual caso exista
         if db_path.exists() {
@@ -1036,8 +1036,8 @@ pub fn read_text_file(file_path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn get_db_path(app: tauri::AppHandle) -> Result<String, String> {
-    let path = crate::db::resolve_db_path_with_app(&app);
+pub fn get_db_path() -> Result<String, String> {
+    let path = crate::db::resolve_db_path();
     Ok(path.to_string_lossy().to_string())
 }
 

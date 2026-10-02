@@ -22,19 +22,25 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Configurar Java JDK 21
+      - name: Configurar Java JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
 
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Instalar NDK e Ferramentas Android
+      - name: Configurar Android SDK e NDK
         run: |
-          echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125" "build-tools;34.0.0" "platforms;android-34"
-          echo "NDK_HOME=${ANDROID_HOME}/ndk/26.1.10909125" >> $GITHUB_ENV
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          
+          # Localiza NDK nativo do runner ou instala a versão 26
+          NDK_DIR=$(find /usr/local/lib/android/sdk/ndk -maxdepth 1 -mindepth 1 2>/dev/null | sort -V | tail -n 1)
+          if [ -z "$NDK_DIR" ]; then
+            echo "Instalando NDK..."
+            echo "y" | sudo /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
+            NDK_DIR="/usr/local/lib/android/sdk/ndk/26.1.10909125"
+          fi
+          echo "NDK_HOME=$NDK_DIR" >> $GITHUB_ENV
+          echo "NDK configurado em: $NDK_DIR"
 
       - name: Instalar Toolchain Rust e Targets Android
         uses: dtolnay/rust-toolchain@stable
@@ -45,27 +51,32 @@ jobs:
         run: npm ci
 
       - name: Inicializar Projeto Android (Tauri v2)
-        run: npx tauri android init --ci
+        run: npx tauri android init --ci --skip-targets-install
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
 
       - name: Compilar APK Android
-        run: npx tauri android build --apk
+        run: npx tauri android build --apk --debug --ci
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
+
+      - name: Organizar APK para Distribuição
+        run: |
+          mkdir -p dist-apk
+          find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -exec cp {} dist-apk/SisProva-Android.apk \;
 
       - name: Salvar Artefato (.apk) para Download
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: SisProva-Android-APK
-          path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          path: dist-apk/*.apk
           if-no-files-found: warn
 
       - name: Anexar APK na Release do GitHub (quando acionado por Tag)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          files: dist-apk/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
